@@ -1,13 +1,13 @@
 [package]
-name = "tantivy"
+name = "yeehaw"
 version = "0.24.0"
 authors = ["Paul Masurel <paul.masurel@gmail.com>"]
 license = "MIT"
 categories = ["database-implementations", "data-structures"]
 description = """Search engine library"""
-documentation = "https://docs.rs/tantivy/"
-homepage = "https://github.com/quickwit-oss/tantivy"
-repository = "https://github.com/quickwit-oss/tantivy"
+documentation = "https://docs.rs/yeehaw/"
+homepage = "https://github.com/triblespace/yeehaw"
+repository = "https://github.com/triblespace/yeehaw"
 readme = "README.md"
 keywords = ["search", "information", "retrieval"]
 edition = "2021"

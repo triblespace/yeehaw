@@ -3,8 +3,8 @@ name = "tantivy-stacker"
 version = "0.5.0"
 edition = "2024"
 license = "MIT"
-homepage = "https://github.com/quickwit-oss/tantivy"
-repository = "https://github.com/quickwit-oss/tantivy"
+homepage = "https://github.com/triblespace/yeehaw"
+repository = "https://github.com/triblespace/yeehaw"
 description = "term hashmap used for indexing"
 
 [dependencies]

@@ -17,6 +17,8 @@ Yeehaw 0.25
 - run preflight script in CI via GitHub Action.
 - expand preflight script to run all workspace tests and doctests.
 - simplify CI by removing the separate test workflow in favor of preflight checks, and restrict preflight to pull requests to avoid duplicate runs.
+- remove long-running tests from CI.
+- drop coverage workflow from CI
 
 Yeehaw 0.24
 ================================

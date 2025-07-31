@@ -15,6 +15,7 @@ Yeehaw 0.25
 - remove legacy Makefile in favor of direct cargo commands.
 - remove custom `rustfmt` configuration in favor of default formatting.
 - run preflight script in CI via GitHub Action.
+- expand preflight script to run all workspace tests and doctests.
 
 Yeehaw 0.24
 ================================

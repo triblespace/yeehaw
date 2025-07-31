@@ -43,5 +43,7 @@ This document outlines the long term plan to rewrite this project so that it rel
 8. **Add contributor guidelines** *(done)*
    - Ported the `AGENTS.md` from `tribles-rust` and adapted it for this project.
    - Contributors must run `cargo fmt`, `cargo test` and `./scripts/preflight.sh` before committing.
+9. **Clean up unused imports**
+   - `cargo test` reports several `unused import: std::iter` warnings that should be removed.
 
 This inventory captures the direction of the rewrite and the major tasks required to make Tantivy a Trible native search engine.

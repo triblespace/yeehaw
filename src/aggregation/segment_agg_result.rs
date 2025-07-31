@@ -52,7 +52,8 @@ pub(crate) trait CollectorClone {
 }
 
 impl<T> CollectorClone for T
-where T: 'static + SegmentAggregationCollector + Clone
+where
+    T: 'static + SegmentAggregationCollector + Clone,
 {
     fn clone_box(&self) -> Box<dyn SegmentAggregationCollector> {
         Box::new(self.clone())

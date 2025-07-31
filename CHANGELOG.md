@@ -11,6 +11,7 @@ Tantivy 0.25
 - update edition to 2024 [#2620](https://github.com/quickwit-oss/tantivy/pull/2620)(@PSeitz)
 - add AGENTS.md contributor guidelines requiring `cargo fmt`, `cargo test`, and `./scripts/preflight.sh`.
 - remove legacy Makefile in favor of direct cargo commands.
+- remove custom `rustfmt` configuration in favor of default formatting.
 
 Tantivy 0.24
 ================================

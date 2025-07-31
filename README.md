@@ -16,6 +16,8 @@ an off-the-shelf search engine server, but rather a crate that can be used to bu
 
 Yeehaw is, in fact, strongly inspired by Lucene's design.
 
+Yeehaw's versioning begins at **0.1.0**, marking the project's fork from Tantivy.
+
 ## Benchmark
 
 The following [benchmark](https://yeehaw-search.github.io/bench/) breaks down the

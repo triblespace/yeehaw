@@ -5,11 +5,11 @@ use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use rand_distr::Distribution;
 use serde_json::json;
-use tantivy::aggregation::agg_req::Aggregations;
-use tantivy::aggregation::AggregationCollector;
-use tantivy::query::{AllQuery, TermQuery};
-use tantivy::schema::{IndexRecordOption, Schema, TextFieldIndexing, FAST, STRING};
-use tantivy::{doc, Index, Term};
+use yeehaw::aggregation::agg_req::Aggregations;
+use yeehaw::aggregation::AggregationCollector;
+use yeehaw::query::{AllQuery, TermQuery};
+use yeehaw::schema::{IndexRecordOption, Schema, TextFieldIndexing, FAST, STRING};
+use yeehaw::{doc, Index, Term};
 
 #[global_allocator]
 pub static GLOBAL: &PeakMemAlloc<std::alloc::System> = &INSTRUMENTED_SYSTEM;
@@ -377,9 +377,9 @@ fn get_collector(agg_req: Aggregations) -> AggregationCollector {
     AggregationCollector::from_aggs(agg_req, Default::default())
 }
 
-fn get_test_index_bench(cardinality: Cardinality) -> tantivy::Result<Index> {
+fn get_test_index_bench(cardinality: Cardinality) -> yeehaw::Result<Index> {
     let mut schema_builder = Schema::builder();
-    let text_fieldtype = tantivy::schema::TextOptions::default()
+    let text_fieldtype = yeehaw::schema::TextOptions::default()
         .set_indexing_options(
             TextFieldIndexing::default().set_index_option(IndexRecordOption::WithFreqs),
         )
@@ -388,7 +388,7 @@ fn get_test_index_bench(cardinality: Cardinality) -> tantivy::Result<Index> {
     let json_field = schema_builder.add_json_field("json", FAST);
     let text_field_many_terms = schema_builder.add_text_field("text_many_terms", STRING | FAST);
     let text_field_few_terms = schema_builder.add_text_field("text_few_terms", STRING | FAST);
-    let score_fieldtype = tantivy::schema::NumericOptions::default().set_fast();
+    let score_fieldtype = yeehaw::schema::NumericOptions::default().set_fast();
     let score_field = schema_builder.add_u64_field("score", score_fieldtype.clone());
     let score_field_f64 = schema_builder.add_f64_field("score_f64", score_fieldtype.clone());
     let score_field_i64 = schema_builder.add_i64_field("score_i64", score_fieldtype);

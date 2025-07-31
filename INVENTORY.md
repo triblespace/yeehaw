@@ -40,8 +40,8 @@ This document outlines the long term plan to rewrite this project so that it rel
    - Wrap indexing operations in workspace commits.
    - Use Trible's compare-and-swap push mechanism so multiple writers merge gracefully.
 
-8. **Add contributor guidelines**
-   - Port the `AGENTS.md` from `tribles-rust` and adapt it for this project.
-   - Require `cargo fmt`, `cargo test` and preflight checks before committing.
+8. **Add contributor guidelines** *(done)*
+   - Ported the `AGENTS.md` from `tribles-rust` and adapted it for this project.
+   - Contributors must run `cargo fmt`, `cargo test` and `./scripts/preflight.sh` before committing.
 
 This inventory captures the direction of the rewrite and the major tasks required to make Tantivy a Trible native search engine.

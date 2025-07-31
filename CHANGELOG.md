@@ -9,6 +9,8 @@ Tantivy 0.25
 - add docs/example and Vec<u32> values to sstable [#2660](https://github.com/quickwit-oss/tantivy/pull/2660)(@PSeitz)
 - Add string fast field support to `TopDocs`. [#2642](https://github.com/quickwit-oss/tantivy/pull/2642)(@stuhood)
 - update edition to 2024 [#2620](https://github.com/quickwit-oss/tantivy/pull/2620)(@PSeitz)
+- add AGENTS.md contributor guidelines requiring `cargo fmt`, `cargo test`, and `./scripts/preflight.sh`.
+- remove legacy Makefile in favor of direct cargo commands.
 
 Tantivy 0.24
 ================================

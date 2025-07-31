@@ -1,6 +1,6 @@
 # Inventory & Roadmap
 
-This document outlines the long term plan to rewrite this project so that it relies on [Trible Space](https://github.com/triblespace/tribles-rust) for storage and metadata management. The overall goal is to remove filesystem centric pieces of Tantivy and treat indexes as content addressed blobs stored alongside the primary data in Trible Space.
+This document outlines the long term plan to rewrite this project so that it relies on [Trible Space](https://github.com/triblespace/tribles-rust) for storage and metadata management. The overall goal is to remove filesystem centric pieces of Yeehaw and treat indexes as content addressed blobs stored alongside the primary data in Trible Space.
 
 ## Big Picture
 
@@ -46,4 +46,8 @@ This document outlines the long term plan to rewrite this project so that it rel
 9. **Clean up unused imports**
    - `cargo test` reports several `unused import: std::iter` warnings that should be removed.
 
-This inventory captures the direction of the rewrite and the major tasks required to make Tantivy a Trible native search engine.
+This inventory captures the direction of the rewrite and the major tasks required to make Yeehaw a Trible native search engine.
+10. **Rename remaining `Tantivy` prefixes**
+    - Update types and crates (e.g. `TantivyDocument`, `tantivy-fst`) to use `yeehaw` naming.
+11. **Rename subcrate benchmarks**
+    - Update benchmark crates (e.g. bitpacker, common, sstable) to use `yeehaw` naming once subcrate packages are renamed.

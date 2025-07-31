@@ -19,4 +19,7 @@ have been removed to keep the changelog focused on Yeehaw's history.
 - remove custom `rustfmt` configuration in favor of default formatting.
 - run preflight script in CI via GitHub Action.
 - document Yeehaw's fork from Tantivy, reset versioning to 0.1.0, and prune legacy Tantivy release notes.
-
+- expand preflight script to run all workspace tests and doctests.
+- simplify CI by removing the separate test workflow in favor of preflight checks, and restrict preflight to pull requests to avoid duplicate runs.
+- remove long-running tests from CI.
+- drop coverage workflow from CI

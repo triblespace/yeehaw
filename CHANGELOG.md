@@ -16,6 +16,7 @@ Yeehaw 0.25
 - remove custom `rustfmt` configuration in favor of default formatting.
 - run preflight script in CI via GitHub Action.
 - expand preflight script to run all workspace tests and doctests.
+- remove long-running tests from CI.
 - drop coverage workflow from CI
 
 Yeehaw 0.24

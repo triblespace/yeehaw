@@ -1,4 +1,4 @@
-Tantivy 0.25
+Yeehaw 0.25
 ================================
 
 ## Bugfixes
@@ -11,10 +11,11 @@ Tantivy 0.25
 - update edition to 2024 [#2620](https://github.com/quickwit-oss/tantivy/pull/2620)(@PSeitz)
 - add AGENTS.md contributor guidelines requiring `cargo fmt`, `cargo test`, and `./scripts/preflight.sh`.
 - remove legacy Makefile in favor of direct cargo commands.
+- run preflight script in CI via GitHub Action.
 
-Tantivy 0.24
+Yeehaw 0.24
 ================================
-Tantivy 0.24 will be backwards compatible with indices created with v0.22 and v0.21. The new minimum rust version will be 1.75. Tantivy 0.23 will be skipped.
+Yeehaw 0.24 will be backwards compatible with indices created with v0.22 and v0.21. The new minimum rust version will be 1.75. Yeehaw 0.23 will be skipped.
 
 #### Bugfixes
 - fix potential endless loop in merge [#2457](https://github.com/quickwit-oss/tantivy/pull/2457)(@PSeitz)

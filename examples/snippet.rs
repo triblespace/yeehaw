@@ -6,15 +6,15 @@
 // The keyword searched by the user are highlighted with a `<b>` tag.
 
 // ---
-// Importing tantivy...
-use tantivy::collector::TopDocs;
-use tantivy::query::QueryParser;
-use tantivy::schema::*;
-use tantivy::snippet::{Snippet, SnippetGenerator};
-use tantivy::{doc, Index, IndexWriter};
+// Importing yeehaw...
 use tempfile::TempDir;
+use yeehaw::collector::TopDocs;
+use yeehaw::query::QueryParser;
+use yeehaw::schema::*;
+use yeehaw::snippet::{Snippet, SnippetGenerator};
+use yeehaw::{doc, Index, IndexWriter};
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // Let's create a temporary directory for the
     // sake of this example
     let index_path = TempDir::new()?;

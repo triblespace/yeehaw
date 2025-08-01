@@ -5,16 +5,16 @@
 // tokens by some external tool.
 //
 // In this example we will:
-// - use tantivy tokenizer to create tokens and load them directly into tantivy,
+// - use yeehaw tokenizer to create tokens and load them directly into yeehaw,
 // - import tokenized text straight from json,
 // - perform a search on documents with pre-tokenized text
 
-use tantivy::collector::{Count, TopDocs};
-use tantivy::query::TermQuery;
-use tantivy::schema::*;
-use tantivy::tokenizer::{PreTokenizedString, SimpleTokenizer, Token, TokenStream, Tokenizer};
-use tantivy::{doc, Index, IndexWriter, ReloadPolicy};
 use tempfile::TempDir;
+use yeehaw::collector::{Count, TopDocs};
+use yeehaw::query::TermQuery;
+use yeehaw::schema::*;
+use yeehaw::tokenizer::{PreTokenizedString, SimpleTokenizer, Token, TokenStream, Tokenizer};
+use yeehaw::{doc, Index, IndexWriter, ReloadPolicy};
 
 fn pre_tokenize_text(text: &str) -> Vec<Token> {
     let mut tokenizer = SimpleTokenizer::default();
@@ -26,7 +26,7 @@ fn pre_tokenize_text(text: &str) -> Vec<Token> {
     tokens
 }
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     let index_path = TempDir::new()?;
 
     let mut schema_builder = Schema::builder();

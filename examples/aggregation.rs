@@ -7,14 +7,14 @@
 // ---
 
 use serde_json::{Deserializer, Value};
-use tantivy::aggregation::agg_req::Aggregations;
-use tantivy::aggregation::agg_result::AggregationResults;
-use tantivy::aggregation::AggregationCollector;
-use tantivy::query::AllQuery;
-use tantivy::schema::{self, IndexRecordOption, Schema, TextFieldIndexing, FAST};
-use tantivy::{Index, IndexWriter, TantivyDocument};
+use yeehaw::aggregation::agg_req::Aggregations;
+use yeehaw::aggregation::agg_result::AggregationResults;
+use yeehaw::aggregation::AggregationCollector;
+use yeehaw::query::AllQuery;
+use yeehaw::schema::{self, IndexRecordOption, Schema, TextFieldIndexing, FAST};
+use yeehaw::{Index, IndexWriter, TantivyDocument};
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // # Create Schema
     //
     // Lets create a schema for a footwear shop, with 4 fields: name, category, stock and price.
@@ -28,7 +28,7 @@ fn main() -> tantivy::Result<()> {
     // - `raw` tokenizer
     //
     // The tokenizer is set to "raw", because the fast field uses the same dictionary as the
-    // inverted index. (This behaviour will change in tantivy 0.20, where the fast field will
+    // inverted index. (This behaviour will change in yeehaw 0.20, where the fast field will
     // always be raw tokenized independent from the regular tokenizing)
     //
     let text_fieldtype = schema::TextOptions::default()

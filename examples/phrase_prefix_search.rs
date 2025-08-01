@@ -1,8 +1,8 @@
-use tantivy::collector::TopDocs;
-use tantivy::query::QueryParser;
-use tantivy::schema::*;
-use tantivy::{doc, Index, IndexWriter, ReloadPolicy, Result};
 use tempfile::TempDir;
+use yeehaw::collector::TopDocs;
+use yeehaw::query::QueryParser;
+use yeehaw::schema::*;
+use yeehaw::{doc, Index, IndexWriter, ReloadPolicy, Result};
 
 fn main() -> Result<()> {
     let index_path = TempDir::new()?;

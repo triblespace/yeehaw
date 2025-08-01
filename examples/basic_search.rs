@@ -1,7 +1,7 @@
 // # Basic Example
 //
 // This example covers the basic functionalities of
-// tantivy.
+// yeehaw.
 //
 // We will :
 // - define our schema
@@ -11,21 +11,21 @@
 // - retrieve the best document's original content.
 
 // ---
-// Importing tantivy...
-use tantivy::collector::TopDocs;
-use tantivy::query::QueryParser;
-use tantivy::schema::*;
-use tantivy::{doc, Index, IndexWriter, ReloadPolicy};
+// Importing yeehaw...
 use tempfile::TempDir;
+use yeehaw::collector::TopDocs;
+use yeehaw::query::QueryParser;
+use yeehaw::schema::*;
+use yeehaw::{doc, Index, IndexWriter, ReloadPolicy};
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // Let's create a temporary directory for the
     // sake of this example
     let index_path = TempDir::new()?;
 
     // # Defining the schema
     //
-    // The Tantivy index requires a very strict schema.
+    // The Yeehaw index requires a very strict schema.
     // The schema declares which fields are in the index,
     // and for each field, its type and "the way it should
     // be indexed".
@@ -72,7 +72,7 @@ fn main() -> tantivy::Result<()> {
     // This single `IndexWriter` is already
     // multithreaded.
     //
-    // Here we give tantivy a budget of `50MB`.
+    // Here we give yeehaw a budget of `50MB`.
     // Using a bigger memory_arena for the indexer may increase
     // throughput, but 50 MB is already plenty.
     let mut index_writer: IndexWriter = index.writer(50_000_000)?;
@@ -98,7 +98,7 @@ fn main() -> tantivy::Result<()> {
     // ... and add it to the `IndexWriter`.
     index_writer.add_document(old_man_doc)?;
 
-    // For convenience, tantivy also comes with a macro to
+    // For convenience, yeehaw also comes with a macro to
     // reduce the boilerplate above.
     index_writer.add_document(doc!(
     title => "Of Mice and Men",
@@ -123,8 +123,8 @@ fn main() -> tantivy::Result<()> {
     ))?;
 
     // This is an example, so we will only index 3 documents
-    // here. You can check out tantivy's tutorial to index
-    // the English wikipedia. Tantivy's indexing is rather fast.
+    // here. You can check out yeehaw's tutorial to index
+    // the English wikipedia. Yeehaw's indexing is rather fast.
     // Indexing 5 million articles of the English wikipedia takes
     // around 3 minutes on my computer!
 
@@ -146,7 +146,7 @@ fn main() -> tantivy::Result<()> {
     // persistently indexed.
     //
     // In the scenario of a crash or a power failure,
-    // tantivy behaves as if it has rolled back to its last
+    // yeehaw behaves as if it has rolled back to its last
     // commit.
 
     // # Searching
@@ -185,7 +185,7 @@ fn main() -> tantivy::Result<()> {
 
     // The query parser can interpret human queries.
     // Here, if the user does not specify which
-    // field they want to search, tantivy will search
+    // field they want to search, yeehaw will search
     // in both title and body.
     let query_parser = QueryParser::for_index(&index, vec![title, body]);
 
@@ -211,7 +211,7 @@ fn main() -> tantivy::Result<()> {
     let top_docs = searcher.search(&query, &TopDocs::with_limit(10))?;
 
     // The actual documents still need to be
-    // retrieved from Tantivy's store.
+    // retrieved from Yeehaw's store.
     //
     // Since the body field was not configured as stored,
     // the document returned will only contain

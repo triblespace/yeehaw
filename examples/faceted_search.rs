@@ -1,7 +1,7 @@
 // # Faceted Search
 //
 // This example covers the faceted search functionalities of
-// tantivy.
+// yeehaw.
 //
 // We will :
 // - define a text field "name" in our schema
@@ -13,13 +13,13 @@
 //   classifications include the facet.
 //
 // ---
-// Importing tantivy...
-use tantivy::collector::FacetCollector;
-use tantivy::query::{AllQuery, TermQuery};
-use tantivy::schema::*;
-use tantivy::{doc, Index, IndexWriter};
+// Importing yeehaw...
+use yeehaw::collector::FacetCollector;
+use yeehaw::query::{AllQuery, TermQuery};
+use yeehaw::schema::*;
+use yeehaw::{doc, Index, IndexWriter};
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // Let's create a temporary directory for the sake of this example
     let mut schema_builder = Schema::builder();
 
@@ -32,7 +32,7 @@ fn main() -> tantivy::Result<()> {
 
     let mut index_writer: IndexWriter = index.writer(30_000_000)?;
 
-    // For convenience, tantivy also comes with a macro to
+    // For convenience, yeehaw also comes with a macro to
     // reduce the boilerplate above.
     index_writer.add_document(doc!(
         name => "Cat",

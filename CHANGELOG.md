@@ -26,3 +26,4 @@ have been removed to keep the changelog focused on Yeehaw's history.
 - drop coverage workflow from CI
 - remove outdated TODO for columnar `list_columns` and document error handling follow-up.
 - remove unused `std::iter` imports from test modules.
+- expand documentation for document deserialization traits.

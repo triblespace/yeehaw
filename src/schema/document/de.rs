@@ -64,9 +64,11 @@ impl From<io::Error> for DeserializeError {
     }
 }
 
-/// The core trait for deserializing a document.
+/// Trait implemented by types that can be constructed from a serialized
+/// document.
 ///
-/// TODO: Improve docs
+/// Implementations pull values from a [`DocumentDeserializer`] and
+/// build the type from the extracted fields.
 pub trait DocumentDeserialize: Sized {
     /// Attempts to deserialize Self from a given document deserializer.
     fn deserialize<'de, D>(deserializer: D) -> Result<Self, DeserializeError>
@@ -86,9 +88,11 @@ pub trait DocumentDeserializer<'de> {
     fn next_field<V: ValueDeserialize>(&mut self) -> Result<Option<(Field, V)>, DeserializeError>;
 }
 
-/// The core trait for deserializing values.
+/// Trait implemented by types that can be deserialized from a single
+/// value within a document.
 ///
-/// TODO: Improve docs
+/// This is used by [`DocumentDeserializer`] to materialize the value
+/// associated with each field.
 pub trait ValueDeserialize: Sized {
     /// Attempts to deserialize Self from a given value deserializer.
     fn deserialize<'de, D>(deserializer: D) -> Result<Self, DeserializeError>

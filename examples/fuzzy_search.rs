@@ -1,7 +1,7 @@
 // # Basic Example
 //
 // This example covers the basic functionalities of
-// tantivy.
+// yeehaw.
 //
 // We will :
 // - define our schema
@@ -10,21 +10,21 @@
 // - search for the best document matching a basic query
 // - retrieve the best document's original content.
 // ---
-// Importing tantivy...
-use tantivy::collector::{Count, TopDocs};
-use tantivy::query::FuzzyTermQuery;
-use tantivy::schema::*;
-use tantivy::{doc, Index, IndexWriter, ReloadPolicy};
+// Importing yeehaw...
 use tempfile::TempDir;
+use yeehaw::collector::{Count, TopDocs};
+use yeehaw::query::FuzzyTermQuery;
+use yeehaw::schema::*;
+use yeehaw::{doc, Index, IndexWriter, ReloadPolicy};
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // Let's create a temporary directory for the
     // sake of this example
     let index_path = TempDir::new()?;
 
     // # Defining the schema
     //
-    // The Tantivy index requires a very strict schema.
+    // The Yeehaw index requires a very strict schema.
     // The schema declares which fields are in the index,
     // and for each field, its type and "the way it should
     // be indexed".
@@ -63,7 +63,7 @@ fn main() -> tantivy::Result<()> {
     // This single `IndexWriter` is already
     // multithreaded.
     //
-    // Here we give tantivy a budget of `50MB`.
+    // Here we give yeehaw a budget of `50MB`.
     // Using a bigger memory_arena for the indexer may increase
     // throughput, but 50 MB is already plenty.
     let mut index_writer: IndexWriter = index.writer(50_000_000)?;
@@ -105,7 +105,7 @@ fn main() -> tantivy::Result<()> {
     // persistently indexed.
     //
     // In the scenario of a crash or a power failure,
-    // tantivy behaves as if it has rolled back to its last
+    // yeehaw behaves as if it has rolled back to its last
     // commit.
 
     // # Searching
@@ -152,7 +152,7 @@ fn main() -> tantivy::Result<()> {
         assert_eq!(top_docs.len(), 3);
         for (score, doc_address) in top_docs {
             // Note that the score is not lower for the fuzzy hit.
-            // There's an issue open for that: https://github.com/quickwit-oss/tantivy/issues/563
+            // There's an issue open for that: https://github.com/quickwit-oss/yeehaw/issues/563
             let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
             println!("score {score:?} doc {}", retrieved_doc.to_json(&schema));
             // score 1.0 doc {"title":["The Diary of Muadib"]}

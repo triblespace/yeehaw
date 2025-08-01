@@ -1,7 +1,7 @@
 // # Stop Words Example
 //
 // This example covers the basic usage of stop words
-// with tantivy
+// with yeehaw
 //
 // We will :
 // - define our schema
@@ -10,18 +10,18 @@
 // - index few documents in our index
 
 // ---
-// Importing tantivy...
-use tantivy::collector::TopDocs;
-use tantivy::query::QueryParser;
-use tantivy::schema::*;
-use tantivy::tokenizer::*;
-use tantivy::{doc, Index, IndexWriter};
+// Importing yeehaw...
+use yeehaw::collector::TopDocs;
+use yeehaw::query::QueryParser;
+use yeehaw::schema::*;
+use yeehaw::tokenizer::*;
+use yeehaw::{doc, Index, IndexWriter};
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // this example assumes you understand the content in `basic_search`
     let mut schema_builder = Schema::builder();
 
-    // This configures your custom options for how tantivy will
+    // This configures your custom options for how yeehaw will
     // store and process your content in the index; The key
     // to note is that we are setting the tokenizer to `stoppy`
     // which will be defined and registered below.

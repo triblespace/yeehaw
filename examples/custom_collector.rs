@@ -4,17 +4,17 @@
 // collector. As an example, we will compute a collector
 // that computes the standard deviation of a given fast field.
 //
-// Of course, you can have a look at the tantivy's built-in collectors
+// Of course, you can have a look at the yeehaw's built-in collectors
 // such as the `CountCollector` for more examples.
 
 use columnar::Column;
 // ---
-// Importing tantivy...
-use tantivy::collector::{Collector, SegmentCollector};
-use tantivy::index::SegmentReader;
-use tantivy::query::QueryParser;
-use tantivy::schema::{Schema, FAST, INDEXED, TEXT};
-use tantivy::{doc, Index, IndexWriter, Score};
+// Importing yeehaw...
+use yeehaw::collector::{Collector, SegmentCollector};
+use yeehaw::index::SegmentReader;
+use yeehaw::query::QueryParser;
+use yeehaw::schema::{Schema, FAST, INDEXED, TEXT};
+use yeehaw::{doc, Index, IndexWriter, Score};
 
 #[derive(Default)]
 struct Stats {
@@ -71,7 +71,7 @@ impl Collector for StatsCollector {
         &self,
         _segment_local_id: u32,
         segment_reader: &SegmentReader,
-    ) -> tantivy::Result<StatsSegmentCollector> {
+    ) -> yeehaw::Result<StatsSegmentCollector> {
         let fast_field_reader = segment_reader.fast_fields().u64(&self.field)?;
         Ok(StatsSegmentCollector {
             fast_field_reader,
@@ -84,7 +84,7 @@ impl Collector for StatsCollector {
         false
     }
 
-    fn merge_fruits(&self, segment_stats: Vec<Option<Stats>>) -> tantivy::Result<Option<Stats>> {
+    fn merge_fruits(&self, segment_stats: Vec<Option<Stats>>) -> yeehaw::Result<Option<Stats>> {
         let mut stats = Stats::default();
         for segment_stats in segment_stats.into_iter().flatten() {
             stats.count += segment_stats.count;
@@ -119,10 +119,10 @@ impl SegmentCollector for StatsSegmentCollector {
     }
 }
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // # Defining the schema
     //
-    // The Tantivy index requires a very strict schema.
+    // The Yeehaw index requires a very strict schema.
     // The schema declares which fields are in the index,
     // and for each field, its type and "the way it should
     // be indexed".

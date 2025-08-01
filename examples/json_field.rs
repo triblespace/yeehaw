@@ -1,15 +1,15 @@
 // # Json field example
 //
 // This example shows how the json field can be used
-// to make tantivy partially schemaless by setting it as
+// to make yeehaw partially schemaless by setting it as
 // default query parser field.
 
-use tantivy::collector::{Count, TopDocs};
-use tantivy::query::QueryParser;
-use tantivy::schema::{Schema, FAST, STORED, STRING, TEXT};
-use tantivy::{Index, IndexWriter, TantivyDocument};
+use yeehaw::collector::{Count, TopDocs};
+use yeehaw::query::QueryParser;
+use yeehaw::schema::{Schema, FAST, STORED, STRING, TEXT};
+use yeehaw::{Index, IndexWriter, TantivyDocument};
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // # Defining the schema
     let mut schema_builder = Schema::builder();
     schema_builder.add_date_field("timestamp", FAST | STORED);

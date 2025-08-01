@@ -2,16 +2,16 @@
 //
 // In this example, we'll see how to define a tokenizer
 // by creating a custom `NgramTokenizer`.
-use tantivy::collector::TopDocs;
-use tantivy::query::QueryParser;
-use tantivy::schema::*;
-use tantivy::tokenizer::NgramTokenizer;
-use tantivy::{doc, Index, IndexWriter};
+use yeehaw::collector::TopDocs;
+use yeehaw::query::QueryParser;
+use yeehaw::schema::*;
+use yeehaw::tokenizer::NgramTokenizer;
+use yeehaw::{doc, Index, IndexWriter};
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // # Defining the schema
     //
-    // The Tantivy index requires a very strict schema.
+    // The Yeehaw index requires a very strict schema.
     // The schema declares which fields are in the index,
     // and for each field, its type and "the way it should
     // be indexed".
@@ -93,7 +93,7 @@ fn main() -> tantivy::Result<()> {
 
     // The query parser can interpret human queries.
     // Here, if the user does not specify which
-    // field they want to search, tantivy will search
+    // field they want to search, yeehaw will search
     // in both title and body.
     let query_parser = QueryParser::for_index(&index, vec![title, body]);
 

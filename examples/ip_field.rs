@@ -3,12 +3,12 @@
 // This example shows how the ip field can be used
 // with IpV6 and IpV4.
 
-use tantivy::collector::{Count, TopDocs};
-use tantivy::query::QueryParser;
-use tantivy::schema::{Schema, FAST, INDEXED, STORED, STRING};
-use tantivy::{Index, IndexWriter, TantivyDocument};
+use yeehaw::collector::{Count, TopDocs};
+use yeehaw::query::QueryParser;
+use yeehaw::schema::{Schema, FAST, INDEXED, STORED, STRING};
+use yeehaw::{Index, IndexWriter, TantivyDocument};
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // # Defining the schema
     // We set the IP field as `INDEXED`, so it can be searched
     // `FAST` will create a fast field. The fast field will be used to execute search queries.

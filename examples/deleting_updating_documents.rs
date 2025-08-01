@@ -1,17 +1,17 @@
 // # Deleting and Updating (?) documents
 //
 // This example explains how to delete and update documents.
-// In fact there is actually no such thing as an update in tantivy.
+// In fact there is actually no such thing as an update in yeehaw.
 //
 // To update a document, you need to delete a document and then reinsert
 // its new version.
 //
 // ---
-// Importing tantivy...
-use tantivy::collector::TopDocs;
-use tantivy::query::TermQuery;
-use tantivy::schema::*;
-use tantivy::{doc, Index, IndexReader, IndexWriter};
+// Importing yeehaw...
+use yeehaw::collector::TopDocs;
+use yeehaw::query::TermQuery;
+use yeehaw::schema::*;
+use yeehaw::{doc, Index, IndexReader, IndexWriter};
 
 // A simple helper function to fetch a single document
 // given its id from our index.
@@ -19,7 +19,7 @@ use tantivy::{doc, Index, IndexReader, IndexWriter};
 fn extract_doc_given_isbn(
     reader: &IndexReader,
     isbn_term: &Term,
-) -> tantivy::Result<Option<TantivyDocument>> {
+) -> yeehaw::Result<Option<TantivyDocument>> {
     let searcher = reader.searcher();
 
     // This is the simplest query you can think of.
@@ -39,14 +39,14 @@ fn extract_doc_given_isbn(
     }
 }
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // # Defining the schema
     //
     // Check out the *basic_search* example if this makes
     // small sense to you.
     let mut schema_builder = Schema::builder();
 
-    // Tantivy does not really have a notion of primary id.
+    // Yeehaw does not really have a notion of primary id.
     // This may change in the future.
     //
     // Still, we can create a `isbn` field and use it as an id. This
@@ -57,7 +57,7 @@ fn main() -> tantivy::Result<()> {
     // running any text processing on it.
     // This is done by associating this field to the tokenizer named `raw`.
     // Rather than building our
-    // [`TextOptions`](//docs.rs/tantivy/~0/tantivy/schema/struct.TextOptions.html) manually, We
+    // [`TextOptions`](//docs.rs/yeehaw/~0/yeehaw/schema/struct.TextOptions.html) manually, We
     // use the `STRING` shortcut. `STRING` stands for indexed (without term frequency or positions)
     // and untokenized.
     //
@@ -102,17 +102,17 @@ fn main() -> tantivy::Result<()> {
     //
     // Here we will want to update the typo in the `Frankenstein` book.
     //
-    // Tantivy does not handle updates directly, we need to delete
+    // Yeehaw does not handle updates directly, we need to delete
     // and reinsert the document.
     //
     // This can be complicated as it means you need to have access
-    // to the entire document. It is good practise to integrate tantivy
+    // to the entire document. It is good practise to integrate yeehaw
     // with a key value store for this reason.
     //
     // To remove one of the document, we just call `delete_term`
     // on its id.
     //
-    // Note that `tantivy` does nothing to enforce the idea that
+    // Note that `yeehaw` does nothing to enforce the idea that
     // there is only one document associated with this id.
     //
     // Also you might have noticed that we apply the delete before

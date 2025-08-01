@@ -2,18 +2,18 @@
 //
 // This example shows how the DateTime field can be used
 
-use tantivy::collector::TopDocs;
-use tantivy::query::QueryParser;
-use tantivy::schema::{DateOptions, Document, Schema, Value, INDEXED, STORED, STRING};
-use tantivy::{Index, IndexWriter, TantivyDocument};
+use yeehaw::collector::TopDocs;
+use yeehaw::query::QueryParser;
+use yeehaw::schema::{DateOptions, Document, Schema, Value, INDEXED, STORED, STRING};
+use yeehaw::{Index, IndexWriter, TantivyDocument};
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // # Defining the schema
     let mut schema_builder = Schema::builder();
     let opts = DateOptions::from(INDEXED)
         .set_stored()
         .set_fast()
-        .set_precision(tantivy::schema::DateTimePrecision::Seconds);
+        .set_precision(yeehaw::schema::DateTimePrecision::Seconds);
     // Add `occurred_at` date field type
     let occurred_at = schema_builder.add_date_field("occurred_at", opts);
     let event_type = schema_builder.add_text_field("event", STRING | STORED);

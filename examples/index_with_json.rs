@@ -1,9 +1,9 @@
-use tantivy::schema::*;
+use yeehaw::schema::*;
 
 // # Document from json
 //
 // For convenience, `Document` can be parsed directly from json.
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     // Let's first define a schema and an index.
     // Check out the basic example if this is confusing to you.
     //

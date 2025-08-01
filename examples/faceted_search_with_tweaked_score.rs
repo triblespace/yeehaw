@@ -1,7 +1,7 @@
 // # Faceted Search With Tweak Score
 //
 // This example covers the faceted search functionalities of
-// tantivy.
+// yeehaw.
 //
 // We will :
 // - define a text field "name" in our schema
@@ -9,12 +9,12 @@
 
 use std::collections::HashSet;
 
-use tantivy::collector::TopDocs;
-use tantivy::query::BooleanQuery;
-use tantivy::schema::*;
-use tantivy::{doc, DocId, Index, IndexWriter, Score, SegmentReader};
+use yeehaw::collector::TopDocs;
+use yeehaw::query::BooleanQuery;
+use yeehaw::schema::*;
+use yeehaw::{doc, DocId, Index, IndexWriter, Score, SegmentReader};
 
-fn main() -> tantivy::Result<()> {
+fn main() -> yeehaw::Result<()> {
     let mut schema_builder = Schema::builder();
 
     let title = schema_builder.add_text_field("title", STORED);

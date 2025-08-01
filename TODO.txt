@@ -12,7 +12,6 @@ remove fast field reader
 find a way to unify the two DateTime.
 readd type check in the filter wrapper
 
-add unit test on columnar list columns.
 
 make sure sort works
 

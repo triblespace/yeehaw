@@ -155,7 +155,6 @@ impl ColumnarReader {
         }))
     }
 
-    // TODO Add unit tests
     pub fn list_columns(&self) -> io::Result<Vec<(String, DynamicColumnHandle)>> {
         Ok(self.iter_columns()?.collect())
     }

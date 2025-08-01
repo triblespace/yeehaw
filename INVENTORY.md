@@ -55,3 +55,5 @@ This inventory captures the direction of the rewrite and the major tasks require
     - Replace `unwrap` usage with a fallible API that reports unknown column types.
 13. **Fix failing doctests after crate rename**
     - Update examples referencing `tantivy` to `yeehaw` so `cargo test --doc` succeeds.
+14. **Replace nightly benches using `test::Bencher`**
+    - Migrate inline benchmarks to a stable harness so the `unstable` feature can be tested on stable Rust.

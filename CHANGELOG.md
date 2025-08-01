@@ -10,6 +10,7 @@ have been removed to keep the changelog focused on Yeehaw's history.
 - replace lingering references from `tantivy` to `yeehaw`.
 - rename benchmark imports to use the `yeehaw` crate.
 - update examples to import the `yeehaw` crate instead of `tantivy`.
+- run preflight tests without enabling the `unstable` feature.
 
 ## Features/Improvements
 - add docs/example and Vec<u32> values to sstable [#2660](https://github.com/quickwit-oss/yeehaw/pull/2660)(@PSeitz)

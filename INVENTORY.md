@@ -51,3 +51,5 @@ This inventory captures the direction of the rewrite and the major tasks require
     - Update types and crates (e.g. `TantivyDocument`, `tantivy-fst`) to use `yeehaw` naming.
 11. **Rename subcrate benchmarks**
     - Update benchmark crates (e.g. bitpacker, common, sstable) to use `yeehaw` naming once subcrate packages are renamed.
+12. **Improve error handling in `ColumnarReader::iter_columns`**
+    - Replace `unwrap` usage with a fallible API that reports unknown column types.

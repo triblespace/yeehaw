@@ -53,3 +53,5 @@ This inventory captures the direction of the rewrite and the major tasks require
     - Update benchmark crates (e.g. bitpacker, common, sstable) to use `yeehaw` naming once subcrate packages are renamed.
 12. **Improve error handling in `ColumnarReader::iter_columns`**
     - Replace `unwrap` usage with a fallible API that reports unknown column types.
+13. **Fix failing doctests after crate rename**
+    - Update examples referencing `tantivy` to `yeehaw` so `cargo test --doc` succeeds.

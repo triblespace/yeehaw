@@ -25,3 +25,4 @@ have been removed to keep the changelog focused on Yeehaw's history.
 - remove long-running tests from CI.
 - drop coverage workflow from CI
 - remove outdated TODO for columnar `list_columns` and document error handling follow-up.
+- remove unused `std::iter` imports from test modules.

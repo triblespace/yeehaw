@@ -125,21 +125,24 @@ impl ColumnarReader {
     // Iterate over the columns in a sorted way
     pub fn iter_columns(
         &self,
-    ) -> io::Result<impl Iterator<Item = (String, DynamicColumnHandle)> + '_> {
+    ) -> io::Result<impl Iterator<Item = io::Result<(String, DynamicColumnHandle)>> + '_> {
         let mut stream = self.column_dictionary.stream()?;
         Ok(std::iter::from_fn(move || {
             if stream.advance() {
                 let key_bytes: &[u8] = stream.key();
                 let column_code: u8 = key_bytes.last().cloned().unwrap();
-                // TODO Error Handling. The API gets quite ugly when returning the error here, so
-                // instead we could just check the first N columns upfront.
-                let column_type: ColumnType = ColumnType::try_from_code(column_code)
-                    .map_err(|_| io_invalid_data(format!("Unknown column code `{column_code}`")))
-                    .unwrap();
+                let column_type = match ColumnType::try_from_code(column_code) {
+                    Ok(column_type) => column_type,
+                    Err(_) => {
+                        return Some(Err(io_invalid_data(format!(
+                            "Unknown column code `{column_code}`"
+                        ))));
+                    }
+                };
                 let range = stream.value().clone();
                 let column_name =
-                // The last two bytes are respectively the 0u8 separator and the column_type.
-                String::from_utf8_lossy(&key_bytes[..key_bytes.len() - 2]).to_string();
+                    // The last two bytes are respectively the 0u8 separator and the column_type.
+                    String::from_utf8_lossy(&key_bytes[..key_bytes.len() - 2]).to_string();
                 let file_slice = self
                     .column_data
                     .slice(range.start as usize..range.end as usize);
@@ -148,7 +151,7 @@ impl ColumnarReader {
                     column_type,
                     format_version: self.format_version,
                 };
-                Some((column_name, column_handle))
+                Some(Ok((column_name, column_handle)))
             } else {
                 None
             }
@@ -156,7 +159,7 @@ impl ColumnarReader {
     }
 
     pub fn list_columns(&self) -> io::Result<Vec<(String, DynamicColumnHandle)>> {
-        Ok(self.iter_columns()?.collect())
+        self.iter_columns()?.collect()
     }
 
     pub async fn read_columns_async(

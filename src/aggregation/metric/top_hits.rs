@@ -191,21 +191,18 @@ impl TopHitsAggregationReq {
             unsupported_err("version")?;
         }
 
+        let columns = reader.list_columns()?;
         self.doc_value_fields = self
             .doc_value_fields
             .iter()
             .map(|field| {
-                if !field.contains('*')
-                    && reader
-                        .iter_columns()?
-                        .any(|(name, _)| name.as_str() == field)
-                {
+                if !field.contains('*') && columns.iter().any(|(name, _)| name.as_str() == field) {
                     return Ok(vec![field.to_owned()]);
                 }
 
                 let pattern = globbed_string_to_regex(field)?;
-                let fields = reader
-                    .iter_columns()?
+                let fields = columns
+                    .iter()
                     .map(|(name, _)| {
                         // normalize path from internal fast field repr
                         name.replace(JSON_PATH_SEGMENT_SEP_STR, ".")
@@ -214,7 +211,7 @@ impl TopHitsAggregationReq {
                     .collect::<Vec<_>>();
                 assert!(
                     !fields.is_empty(),
-                    "No fields matched the glob '{field}' in docvalue_fields"
+                    "No fields matched the glob '{field}' in docvalue_fields",
                 );
                 Ok(fields)
             })
@@ -222,7 +219,6 @@ impl TopHitsAggregationReq {
             .into_iter()
             .flatten()
             .collect();
-
         Ok(())
     }
 

@@ -410,7 +410,8 @@ fn group_columns_for_merge<'a>(
     for (columnar_id, columnar_reader) in columnar_readers.iter().enumerate() {
         let column_name_and_handle = columnar_reader.iter_columns()?;
 
-        for (column_name, handle) in column_name_and_handle {
+        for result in column_name_and_handle {
+            let (column_name, handle) = result?;
             let column_category: ColumnTypeCategory = handle.column_type().into();
             columns
                 .entry((column_name, column_category))

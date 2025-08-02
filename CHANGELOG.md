@@ -11,6 +11,7 @@ have been removed to keep the changelog focused on Yeehaw's history.
 - rename benchmark imports to use the `yeehaw` crate.
 - update examples to import the `yeehaw` crate instead of `tantivy`.
 - run preflight tests without enabling the `unstable` feature.
+- handle unknown column codes gracefully in `ColumnarReader::iter_columns`.
 
 ## Features/Improvements
 - add docs/example and Vec<u32> values to sstable [#2660](https://github.com/quickwit-oss/yeehaw/pull/2660)(@PSeitz)
@@ -28,3 +29,4 @@ have been removed to keep the changelog focused on Yeehaw's history.
 - remove outdated TODO for columnar `list_columns` and document error handling follow-up.
 - remove unused `std::iter` imports from test modules.
 - expand documentation for document deserialization traits.
+- reorder inventory tasks to prioritize fixing doctest regressions.

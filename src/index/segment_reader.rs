@@ -355,7 +355,8 @@ impl SegmentReader {
             .fast_fields()
             .columnar()
             .iter_columns()?
-            .map(|(mut field_name, handle)| {
+            .map(|res| {
+                let (mut field_name, handle) = res?;
                 json_path_sep_to_dot(&mut field_name);
                 // map to canonical path, to avoid similar but different entries.
                 // Eventually we should just accept '.' separated for all cases.
@@ -363,15 +364,15 @@ impl SegmentReader {
                     .get(&field_name)
                     .unwrap_or(&field_name)
                     .to_string();
-                FieldMetadata {
+                Ok(FieldMetadata {
                     indexed: false,
                     stored: false,
                     field_name,
                     fast: true,
                     typ: Type::from(handle.column_type()),
-                }
+                })
             })
-            .collect();
+            .collect::<io::Result<Vec<_>>>()?;
         // Since the type is encoded differently in the fast field and in the inverted index,
         // the order of the fields is not guaranteed to be the same. Therefore, we sort the fields.
         // If we are sure that the order is the same, we can remove this sort.

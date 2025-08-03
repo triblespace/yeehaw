@@ -35,7 +35,6 @@ fn path_for_version(version: &str) -> String {
 
 /// feature flag quickwit uses a different dictionary type
 #[test]
-#[cfg(not(feature = "quickwit"))]
 fn test_format_6() {
     let path = path_for_version("6");
 
@@ -46,7 +45,6 @@ fn test_format_6() {
 
 /// feature flag quickwit uses a different dictionary type
 #[test]
-#[cfg(not(feature = "quickwit"))]
 fn test_format_7() {
     let path = path_for_version("7");
 
@@ -55,7 +53,6 @@ fn test_format_7() {
     assert_date_time_precision(&index, DateTimePrecision::Nanoseconds);
 }
 
-#[cfg(not(feature = "quickwit"))]
 fn assert_date_time_precision(index: &Index, doc_store_precision: DateTimePrecision) {
     use collector::TopDocs;
     let reader = index.reader().expect("Failed to create reader");

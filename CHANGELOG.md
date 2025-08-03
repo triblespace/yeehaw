@@ -30,3 +30,4 @@ have been removed to keep the changelog focused on Yeehaw's history.
 - remove unused `std::iter` imports from test modules.
 - expand documentation for document deserialization traits.
 - reorder inventory tasks to prioritize fixing doctest regressions.
+- remove `quickwit` feature and associated asynchronous APIs.

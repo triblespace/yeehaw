@@ -31,11 +31,7 @@ impl FastFieldReaders {
     }
 
     fn resolve_field(&self, column_name: &str) -> crate::Result<Option<String>> {
-        let default_field_opt: Option<Field> = if cfg!(feature = "quickwit") {
-            self.schema.get_field("_dynamic").ok()
-        } else {
-            None
-        };
+        let default_field_opt: Option<Field> = None;
         self.resolve_column_name_given_default_field(column_name, default_field_opt)
     }
 

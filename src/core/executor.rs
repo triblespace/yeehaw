@@ -12,6 +12,12 @@ pub enum Executor {
     ThreadPool(Arc<rayon::ThreadPool>),
 }
 
+impl From<Arc<rayon::ThreadPool>> for Executor {
+    fn from(thread_pool: Arc<rayon::ThreadPool>) -> Self {
+        Executor::ThreadPool(thread_pool)
+    }
+}
+
 impl Executor {
     /// Creates an Executor that performs all task in the caller thread.
     pub fn single_thread() -> Executor {

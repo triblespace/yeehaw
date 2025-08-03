@@ -33,7 +33,6 @@ fn path_for_version(version: &str) -> String {
     format!("./tests/compat_tests_data/index_v{version}/")
 }
 
-/// feature flag quickwit uses a different dictionary type
 #[test]
 fn test_format_6() {
     let path = path_for_version("6");
@@ -43,7 +42,6 @@ fn test_format_6() {
     assert_date_time_precision(&index, DateTimePrecision::Microseconds);
 }
 
-/// feature flag quickwit uses a different dictionary type
 #[test]
 fn test_format_7() {
     let path = path_for_version("7");

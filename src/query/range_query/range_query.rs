@@ -173,7 +173,6 @@ pub struct InvertedIndexRangeWeight {
 
 impl InvertedIndexRangeWeight {
     /// Creates a new RangeWeight
-    ///
     pub fn new(
         field: Field,
         lower_bound: &Bound<Term>,

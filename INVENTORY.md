@@ -57,3 +57,5 @@ This inventory captures the direction of the rewrite and the major tasks require
     - Replace `unwrap` usage with a fallible API that reports unknown column types.
 14. **Replace nightly benches using `test::Bencher`**
     - Migrate inline benchmarks to a stable harness so the `unstable` feature can be tested on stable Rust.
+15. **Evaluate removing sstable term dictionary and crate now that `quickwit` feature is gone**
+    - Determine whether the `sstable` crate should remain in the workspace or be extracted.

@@ -174,7 +174,6 @@ pub struct InvertedIndexRangeWeight {
 impl InvertedIndexRangeWeight {
     /// Creates a new RangeWeight
     ///
-    /// Note: The limit is only enabled with the quickwit feature flag.
     pub fn new(
         field: Field,
         lower_bound: &Bound<Term>,
@@ -203,10 +202,6 @@ impl InvertedIndexRangeWeight {
             Excluded(ref term_val) => term_stream_builder.lt(term_val),
             Unbounded => term_stream_builder,
         };
-        #[cfg(feature = "quickwit")]
-        if let Some(limit) = self.limit {
-            term_stream_builder = term_stream_builder.limit(limit);
-        }
         term_stream_builder.into_stream()
     }
 }

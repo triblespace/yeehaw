@@ -103,17 +103,6 @@ impl Searcher {
         cache_stats
     }
 
-    /// Fetches a document in an asynchronous manner.
-    #[cfg(feature = "quickwit")]
-    pub async fn doc_async<D: DocumentDeserialize>(
-        &self,
-        doc_address: DocAddress,
-    ) -> crate::Result<D> {
-        let executor = self.inner.index.search_executor();
-        let store_reader = &self.inner.store_readers[doc_address.segment_ord as usize];
-        store_reader.get_async(doc_address.doc_id, executor).await
-    }
-
     /// Access the schema associated with the index of this searcher.
     pub fn schema(&self) -> &Schema {
         &self.inner.schema
@@ -135,19 +124,6 @@ impl Searcher {
         for segment_reader in &self.inner.segment_readers {
             let inverted_index = segment_reader.inverted_index(term.field())?;
             let doc_freq = inverted_index.doc_freq(term)?;
-            total_doc_freq += u64::from(doc_freq);
-        }
-        Ok(total_doc_freq)
-    }
-
-    /// Return the overall number of documents containing
-    /// the given term in an asynchronous manner.
-    #[cfg(feature = "quickwit")]
-    pub async fn doc_freq_async(&self, term: &Term) -> crate::Result<u64> {
-        let mut total_doc_freq = 0;
-        for segment_reader in &self.inner.segment_readers {
-            let inverted_index = segment_reader.inverted_index(term.field())?;
-            let doc_freq = inverted_index.doc_freq_async(term).await?;
             total_doc_freq += u64::from(doc_freq);
         }
         Ok(total_doc_freq)

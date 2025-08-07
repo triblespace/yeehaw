@@ -196,7 +196,6 @@ pub mod postings;
 pub mod query;
 pub mod schema;
 pub mod space_usage;
-pub mod store;
 pub mod termdict;
 
 mod docset;
@@ -267,13 +266,13 @@ impl fmt::Display for Version {
 static VERSION_STRING: Lazy<String> = Lazy::new(|| VERSION.to_string());
 
 /// Expose the current version of tantivy as found in Cargo.toml during compilation.
-/// eg. "0.11.0" as well as the compression scheme used in the docstore.
+/// eg. "0.11.0".
 pub fn version() -> &'static Version {
     &VERSION
 }
 
 /// Exposes the complete version of tantivy as found in Cargo.toml during compilation as a string.
-/// eg. "tantivy v0.11.0, index_format v1, store_compression: lz4".
+/// eg. "tantivy v0.11.0, index_format v1".
 pub fn version_string() -> &'static str {
     VERSION_STRING.as_str()
 }

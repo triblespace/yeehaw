@@ -14,6 +14,7 @@ have been removed to keep the changelog focused on Yeehaw's history.
 - handle unknown column codes gracefully in `ColumnarReader::iter_columns`.
 
 ## Features/Improvements
+- drop docstore module and references in preparation for trible.space rewrite.
 - remove `quickwit` feature flag and related async code.
 - add docs/example and Vec<u32> values to sstable [#2660](https://github.com/quickwit-oss/yeehaw/pull/2660)(@PSeitz)
 - Add string fast field support to `TopDocs`. [#2642](https://github.com/quickwit-oss/yeehaw/pull/2642)(@stuhood)

@@ -8,7 +8,6 @@
 // - create an index in a directory
 // - index a few documents into our index
 // - search for the best document matching a basic query
-// - retrieve the best document's original content.
 // ---
 // Importing yeehaw...
 use tempfile::TempDir;
@@ -33,20 +32,10 @@ fn main() -> yeehaw::Result<()> {
     let mut schema_builder = Schema::builder();
 
     // Our first field is title.
-    // We want full-text search for it, and we also want
-    // to be able to retrieve the document after the search.
-    //
-    // `TEXT | STORED` is some syntactic sugar to describe
-    // that.
-    //
+    // We want full-text search for it.
     // `TEXT` means the field should be tokenized and indexed,
     // along with its term frequency and term positions.
-    //
-    // `STORED` means that the field will also be saved
-    // in a compressed, row-oriented key-value store.
-    // This store is useful for reconstructing the
-    // documents that were selected during the search phase.
-    let title = schema_builder.add_text_field("title", TEXT | STORED);
+    let title = schema_builder.add_text_field("title", TEXT);
 
     let schema = schema_builder.build();
 
@@ -153,13 +142,12 @@ fn main() -> yeehaw::Result<()> {
         for (score, doc_address) in top_docs {
             // Note that the score is not lower for the fuzzy hit.
             // There's an issue open for that: https://github.com/quickwit-oss/yeehaw/issues/563
-            let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
-            println!("score {score:?} doc {}", retrieved_doc.to_json(&schema));
-            // score 1.0 doc {"title":["The Diary of Muadib"]}
+            println!("score {score:?} doc {doc_address:?}");
+            // score 1.0 doc DocAddress { ... }
             //
-            // score 1.0 doc {"title":["The Diary of a Young Girl"]}
+            // score 1.0 doc DocAddress { ... }
             //
-            // score 1.0 doc {"title":["A Dairy Cow"]}
+            // score 1.0 doc DocAddress { ... }
         }
     }
 

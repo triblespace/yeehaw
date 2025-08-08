@@ -13,15 +13,15 @@ use crate::schema::{IndexRecordOption, Term};
 /// You can combine other query types and their `Occur`ances into one `BooleanQuery`
 ///
 /// ```rust
-/// use tantivy::collector::Count;
-/// use tantivy::doc;
-/// use tantivy::query::{BooleanQuery, Occur, PhraseQuery, Query, TermQuery};
-/// use tantivy::schema::{IndexRecordOption, Schema, TEXT};
-/// use tantivy::Term;
-/// use tantivy::Index;
-/// use tantivy::IndexWriter;
+/// use yeehaw::collector::Count;
+/// use yeehaw::doc;
+/// use yeehaw::query::{BooleanQuery, Occur, PhraseQuery, Query, TermQuery};
+/// use yeehaw::schema::{IndexRecordOption, Schema, TEXT};
+/// use yeehaw::Term;
+/// use yeehaw::Index;
+/// use yeehaw::IndexWriter;
 ///
-/// fn main() -> tantivy::Result<()> {
+/// fn main() -> yeehaw::Result<()> {
 ///    let mut schema_builder = Schema::builder();
 ///    let title = schema_builder.add_text_field("title", TEXT);
 ///    let body = schema_builder.add_text_field("body", TEXT);

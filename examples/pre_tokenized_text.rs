@@ -31,7 +31,7 @@ fn main() -> yeehaw::Result<()> {
 
     let mut schema_builder = Schema::builder();
 
-    schema_builder.add_text_field("title", TEXT | STORED);
+    schema_builder.add_text_field("title", TEXT);
     schema_builder.add_text_field("body", TEXT);
 
     let schema = schema_builder.build();
@@ -112,11 +112,8 @@ fn main() -> yeehaw::Result<()> {
     assert_eq!(count, 2);
 
     // Now let's print out the results.
-    // Note that the tokens are not stored along with the original text
-    // in the document store
     for (_score, doc_address) in top_docs {
-        let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
-        println!("{}", retrieved_doc.to_json(&schema));
+        println!("{doc_address:?}");
     }
 
     // In contrary to the previous query, when we search for the "man" term we

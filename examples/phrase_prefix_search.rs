@@ -8,7 +8,7 @@ fn main() -> Result<()> {
     let index_path = TempDir::new()?;
 
     let mut schema_builder = Schema::builder();
-    schema_builder.add_text_field("title", TEXT | STORED);
+    schema_builder.add_text_field("title", TEXT);
     schema_builder.add_text_field("body", TEXT);
     let schema = schema_builder.build();
 
@@ -64,20 +64,7 @@ fn main() -> Result<()> {
     let query = query_parser.parse_query("\"in the su\"*")?;
 
     let top_docs = searcher.search(&query, &TopDocs::with_limit(10))?;
-    let mut titles = top_docs
-        .into_iter()
-        .map(|(_score, doc_address)| {
-            let doc = searcher.doc::<TantivyDocument>(doc_address)?;
-            let title = doc
-                .get_first(title)
-                .and_then(|v| v.as_str())
-                .unwrap()
-                .to_owned();
-            Ok(title)
-        })
-        .collect::<Result<Vec<_>>>()?;
-    titles.sort_unstable();
-    assert_eq!(titles, ["Frankenstein", "Of Mice and Men"]);
+    assert_eq!(top_docs.len(), 2);
 
     Ok(())
 }

@@ -21,7 +21,7 @@ use crate::TantivyError;
 /// # Examples
 ///
 /// ```
-/// use tantivy::schema::*;
+/// use yeehaw::schema::*;
 ///
 /// let mut schema_builder = Schema::builder();
 /// let id_field = schema_builder.add_text_field("id", STRING);
@@ -239,7 +239,7 @@ impl Eq for InnerSchema {}
 /// # Examples
 ///
 /// ```
-/// use tantivy::schema::*;
+/// use yeehaw::schema::*;
 ///
 /// let mut schema_builder = Schema::builder();
 /// let id_field = schema_builder.add_text_field("id", STRING);

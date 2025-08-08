@@ -218,7 +218,6 @@ fn index_documents<D: Document>(
     let alive_bitset_opt = apply_deletes(&segment_with_max_doc, &mut delete_cursor, &doc_opstamps)?;
 
     let meta = segment_with_max_doc.meta().clone();
-    meta.untrack_temp_docstore();
     // update segment_updater inventory to remove tempstore
     let segment_entry = SegmentEntry::new(meta, delete_cursor, alive_bitset_opt);
     segment_updater.schedule_add_segment(segment_entry).wait()?;
@@ -490,12 +489,12 @@ impl<D: Document> IndexWriter<D> {
     /// by clearing and resubmitting necessary documents
     ///
     /// ```rust
-    /// use tantivy::collector::TopDocs;
-    /// use tantivy::query::QueryParser;
-    /// use tantivy::schema::*;
-    /// use tantivy::{doc, Index};
+    /// use yeehaw::collector::TopDocs;
+    /// use yeehaw::query::QueryParser;
+    /// use yeehaw::schema::*;
+    /// use yeehaw::{doc, Index};
     ///
-    /// fn main() -> tantivy::Result<()> {
+    /// fn main() -> yeehaw::Result<()> {
     ///     let mut schema_builder = Schema::builder();
     ///     let title = schema_builder.add_text_field("title", TEXT | STORED);
     ///     let schema = schema_builder.build();
@@ -832,10 +831,9 @@ mod tests {
     use crate::query::{QueryParser, TermQuery};
     use crate::schema::{
         self, Facet, FacetOptions, IndexRecordOption, IpAddrOptions, JsonObjectOptions,
-        NumericOptions, Schema, TextFieldIndexing, TextOptions, Value, FAST, INDEXED, STORED,
-        STRING, TEXT,
+        NumericOptions, Schema, TextFieldIndexing, TextOptions, FAST, INDEXED, STORED, STRING,
+        TEXT,
     };
-    use crate::store::DOCSTORE_CACHE_CAPACITY;
     use crate::{
         DateTime, DocAddress, Index, IndexSettings, IndexWriter, ReloadPolicy, TantivyDocument,
         Term,
@@ -1959,56 +1957,6 @@ mod tests {
             }
         }
 
-        // doc store tests
-        for segment_reader in searcher.segment_readers().iter() {
-            let store_reader = segment_reader
-                .get_store_reader(DOCSTORE_CACHE_CAPACITY)
-                .unwrap();
-            // test store iterator
-            for doc in store_reader.iter::<TantivyDocument>(segment_reader.alive_bitset()) {
-                let id = doc
-                    .unwrap()
-                    .get_first(id_field)
-                    .unwrap()
-                    .as_value()
-                    .as_u64()
-                    .unwrap();
-                assert!(expected_ids_and_num_occurrences.contains_key(&id));
-            }
-            // test store random access
-            for doc_id in segment_reader.doc_ids_alive() {
-                let id = store_reader
-                    .get::<TantivyDocument>(doc_id)
-                    .unwrap()
-                    .get_first(id_field)
-                    .unwrap()
-                    .as_u64()
-                    .unwrap();
-                assert!(expected_ids_and_num_occurrences.contains_key(&id));
-                if id_is_full_doc(id) {
-                    let id2 = store_reader
-                        .get::<TantivyDocument>(doc_id)
-                        .unwrap()
-                        .get_first(multi_numbers)
-                        .unwrap()
-                        .as_u64()
-                        .unwrap();
-                    assert_eq!(id, id2);
-                    let bool = store_reader
-                        .get::<TantivyDocument>(doc_id)
-                        .unwrap()
-                        .get_first(bool_field)
-                        .unwrap()
-                        .as_bool()
-                        .unwrap();
-                    let doc = store_reader.get::<TantivyDocument>(doc_id).unwrap();
-                    let mut bool2 = doc.get_all(multi_bools);
-                    assert_eq!(bool, bool2.next().unwrap().as_bool().unwrap());
-                    assert_ne!(bool, bool2.next().unwrap().as_bool().unwrap());
-                    assert!(bool2.next().is_none())
-                }
-            }
-        }
         // test search
         let do_search = |term: &str, field| {
             let query = QueryParser::for_index(&index, vec![field])

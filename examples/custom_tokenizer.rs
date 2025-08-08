@@ -26,9 +26,7 @@ fn main() -> yeehaw::Result<()> {
     let text_field_indexing = TextFieldIndexing::default()
         .set_tokenizer("ngram3")
         .set_index_option(IndexRecordOption::WithFreqsAndPositions);
-    let text_options = TextOptions::default()
-        .set_indexing_options(text_field_indexing)
-        .set_stored();
+    let text_options = TextOptions::default().set_indexing_options(text_field_indexing);
     let title = schema_builder.add_text_field("title", text_options);
 
     // Our second field is body.
@@ -103,8 +101,7 @@ fn main() -> yeehaw::Result<()> {
     let top_docs = searcher.search(&query, &TopDocs::with_limit(10))?;
 
     for (_, doc_address) in top_docs {
-        let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
-        println!("{}", retrieved_doc.to_json(&schema));
+        println!("{doc_address:?}");
     }
 
     Ok(())

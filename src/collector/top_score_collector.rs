@@ -257,12 +257,12 @@ impl SegmentCollector for StringConvertSegmentCollector {
 /// Only then, it is suitable for pagination.
 ///
 /// ```rust
-/// use tantivy::collector::TopDocs;
-/// use tantivy::query::QueryParser;
-/// use tantivy::schema::{Schema, TEXT};
-/// use tantivy::{doc, DocAddress, Index};
+/// use yeehaw::collector::TopDocs;
+/// use yeehaw::query::QueryParser;
+/// use yeehaw::schema::{Schema, TEXT};
+/// use yeehaw::{doc, DocAddress, Index};
 ///
-/// # fn main() -> tantivy::Result<()> {
+/// # fn main() -> yeehaw::Result<()> {
 /// let mut schema_builder = Schema::builder();
 /// let title = schema_builder.add_text_field("title", TEXT);
 /// let schema = schema_builder.build();
@@ -362,12 +362,12 @@ impl TopDocs {
     /// # Example
     ///
     /// ```rust
-    /// use tantivy::collector::TopDocs;
-    /// use tantivy::query::QueryParser;
-    /// use tantivy::schema::{Schema, TEXT};
-    /// use tantivy::{doc, DocAddress, Index};
+    /// use yeehaw::collector::TopDocs;
+    /// use yeehaw::query::QueryParser;
+    /// use yeehaw::schema::{Schema, TEXT};
+    /// use yeehaw::{doc, DocAddress, Index};
     ///
-    /// # fn main() -> tantivy::Result<()> {
+    /// # fn main() -> yeehaw::Result<()> {
     /// let mut schema_builder = Schema::builder();
     /// let title = schema_builder.add_text_field("title", TEXT);
     /// let schema = schema_builder.build();
@@ -411,13 +411,13 @@ impl TopDocs {
     /// # Example
     ///
     /// ```rust
-    /// # use tantivy::schema::{Schema, FAST, TEXT};
-    /// # use tantivy::{doc, Index, DocAddress, Order};
-    /// # use tantivy::query::{Query, QueryParser};
-    /// use tantivy::Searcher;
-    /// use tantivy::collector::TopDocs;
+    /// # use yeehaw::schema::{Schema, FAST, TEXT};
+    /// # use yeehaw::{doc, Index, DocAddress, Order};
+    /// # use yeehaw::query::{Query, QueryParser};
+    /// use yeehaw::Searcher;
+    /// use yeehaw::collector::TopDocs;
     ///
-    /// # fn main() -> tantivy::Result<()> {
+    /// # fn main() -> yeehaw::Result<()> {
     /// #   let mut schema_builder = Schema::builder();
     /// #   let title = schema_builder.add_text_field("title", TEXT);
     /// #   let rating = schema_builder.add_u64_field("rating", FAST);
@@ -443,7 +443,7 @@ impl TopDocs {
     /// /// given in argument.
     /// fn docs_sorted_by_rating(searcher: &Searcher,
     ///                          query: &dyn Query)
-    ///     -> tantivy::Result<Vec<(u64, DocAddress)>> {
+    ///     -> yeehaw::Result<Vec<(u64, DocAddress)>> {
     ///
     ///     // This is where we build our topdocs collector
     ///     //
@@ -499,13 +499,13 @@ impl TopDocs {
     /// # Example
     ///
     /// ```rust
-    /// # use tantivy::schema::{Schema, FAST, TEXT};
-    /// # use tantivy::{doc, Index, DocAddress,Order};
-    /// # use tantivy::query::{Query, AllQuery};
-    /// use tantivy::Searcher;
-    /// use tantivy::collector::TopDocs;
+    /// # use yeehaw::schema::{Schema, FAST, TEXT};
+    /// # use yeehaw::{doc, Index, DocAddress,Order};
+    /// # use yeehaw::query::{Query, AllQuery};
+    /// use yeehaw::Searcher;
+    /// use yeehaw::collector::TopDocs;
     ///
-    /// # fn main() -> tantivy::Result<()> {
+    /// # fn main() -> yeehaw::Result<()> {
     /// #   let mut schema_builder = Schema::builder();
     /// #   let title = schema_builder.add_text_field("company", TEXT);
     /// #   let revenue = schema_builder.add_i64_field("revenue", FAST);
@@ -530,7 +530,7 @@ impl TopDocs {
     /// fn docs_sorted_by_revenue(searcher: &Searcher,
     ///                          query: &dyn Query,
     ///                          revenue_field: &str)
-    ///     -> tantivy::Result<Vec<(i64, DocAddress)>> {
+    ///     -> yeehaw::Result<Vec<(i64, DocAddress)>> {
     ///
     ///     // This is where we build our topdocs collector
     ///     //
@@ -619,12 +619,12 @@ impl TopDocs {
     /// learning-to-rank model over various features
     ///
     /// ```rust
-    /// # use tantivy::schema::{Schema, FAST, TEXT};
-    /// # use tantivy::{doc, Index, DocAddress, DocId, Score};
-    /// # use tantivy::query::QueryParser;
-    /// use tantivy::SegmentReader;
-    /// use tantivy::collector::TopDocs;
-    /// use tantivy::schema::Field;
+    /// # use yeehaw::schema::{Schema, FAST, TEXT};
+    /// # use yeehaw::{doc, Index, DocAddress, DocId, Score};
+    /// # use yeehaw::query::QueryParser;
+    /// use yeehaw::SegmentReader;
+    /// use yeehaw::collector::TopDocs;
+    /// use yeehaw::schema::Field;
     ///
     /// fn create_schema() -> Schema {
     ///    let mut schema_builder = Schema::builder();
@@ -633,7 +633,7 @@ impl TopDocs {
     ///    schema_builder.build()
     /// }
     ///
-    /// fn create_index() -> tantivy::Result<Index> {
+    /// fn create_index() -> yeehaw::Result<Index> {
     ///   let schema = create_schema();
     ///   let index = Index::create_in_ram(schema);
     ///   let mut index_writer = index.writer_with_num_threads(1, 20_000_000)?;
@@ -725,12 +725,12 @@ impl TopDocs {
     /// # Example
     ///
     /// ```rust
-    /// # use tantivy::schema::{Schema, FAST, TEXT};
-    /// # use tantivy::{doc, Index, DocAddress, DocId};
-    /// # use tantivy::query::QueryParser;
-    /// use tantivy::SegmentReader;
-    /// use tantivy::collector::TopDocs;
-    /// use tantivy::schema::Field;
+    /// # use yeehaw::schema::{Schema, FAST, TEXT};
+    /// # use yeehaw::{doc, Index, DocAddress, DocId};
+    /// # use yeehaw::query::QueryParser;
+    /// use yeehaw::SegmentReader;
+    /// use yeehaw::collector::TopDocs;
+    /// use yeehaw::schema::Field;
     ///
     /// # fn create_schema() -> Schema {
     /// #    let mut schema_builder = Schema::builder();
@@ -740,7 +740,7 @@ impl TopDocs {
     /// #    schema_builder.build()
     /// # }
     /// #
-    /// # fn main() -> tantivy::Result<()> {
+    /// # fn main() -> yeehaw::Result<()> {
     /// #   let schema = create_schema();
     /// #   let index = Index::create_in_ram(schema);
     /// #   let mut index_writer = index.writer_with_num_threads(1, 20_000_000)?;

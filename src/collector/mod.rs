@@ -34,12 +34,12 @@
 //! in their respective position.
 //!
 //! ```rust
-//! # use tantivy::schema::*;
-//! # use tantivy::*;
-//! # use tantivy::query::*;
-//! use tantivy::collector::{Count, TopDocs};
+//! # use yeehaw::schema::*;
+//! # use yeehaw::*;
+//! # use yeehaw::query::*;
+//! use yeehaw::collector::{Count, TopDocs};
 //! #
-//! # fn main() -> tantivy::Result<()> {
+//! # fn main() -> yeehaw::Result<()> {
 //! # let mut schema_builder = Schema::builder();
 //! #     let title = schema_builder.add_text_field("title", TEXT);
 //! #     let schema = schema_builder.build();

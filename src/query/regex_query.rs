@@ -15,12 +15,12 @@ use crate::schema::Field;
 /// by converting them to their regex counterparts.
 ///
 /// ```rust
-/// use tantivy::collector::Count;
-/// use tantivy::query::RegexQuery;
-/// use tantivy::schema::{Schema, TEXT};
-/// use tantivy::{doc, Index, IndexWriter, Term};
+/// use yeehaw::collector::Count;
+/// use yeehaw::query::RegexQuery;
+/// use yeehaw::schema::{Schema, TEXT};
+/// use yeehaw::{doc, Index, IndexWriter, Term};
 ///
-/// # fn test() -> tantivy::Result<()> {
+/// # fn test() -> yeehaw::Result<()> {
 /// let mut schema_builder = Schema::builder();
 /// let title = schema_builder.add_text_field("title", TEXT);
 /// let schema = schema_builder.build();

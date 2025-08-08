@@ -11,7 +11,6 @@ use tempfile::TempDir;
 use yeehaw::collector::TopDocs;
 use yeehaw::query::QueryParser;
 use yeehaw::schema::*;
-use yeehaw::snippet::{Snippet, SnippetGenerator};
 use yeehaw::{doc, Index, IndexWriter};
 
 fn main() -> yeehaw::Result<()> {
@@ -21,8 +20,8 @@ fn main() -> yeehaw::Result<()> {
 
     // # Defining the schema
     let mut schema_builder = Schema::builder();
-    let title = schema_builder.add_text_field("title", TEXT | STORED);
-    let body = schema_builder.add_text_field("body", TEXT | STORED);
+    let title = schema_builder.add_text_field("title", TEXT);
+    let body = schema_builder.add_text_field("body", TEXT);
     let schema = schema_builder.build();
 
     // # Indexing documents
@@ -52,32 +51,9 @@ fn main() -> yeehaw::Result<()> {
 
     let top_docs = searcher.search(&query, &TopDocs::with_limit(10))?;
 
-    let snippet_generator = SnippetGenerator::create(&searcher, &*query, body)?;
-
     for (score, doc_address) in top_docs {
-        let doc = searcher.doc::<TantivyDocument>(doc_address)?;
-        let snippet = snippet_generator.snippet_from_doc(&doc);
-        println!("Document score {score}:");
-        println!("title: {}", doc.get_first(title).unwrap().as_str().unwrap());
-        println!("snippet: {}", snippet.to_html());
-        println!("custom highlighting: {}", highlight(snippet));
+        println!("Document score {score}: {doc_address:?}");
     }
 
     Ok(())
-}
-
-fn highlight(snippet: Snippet) -> String {
-    let mut result = String::new();
-    let mut start_from = 0;
-
-    for fragment_range in snippet.highlighted() {
-        result.push_str(&snippet.fragment()[start_from..fragment_range.start]);
-        result.push_str(" --> ");
-        result.push_str(&snippet.fragment()[fragment_range.clone()]);
-        result.push_str(" <-- ");
-        start_from = fragment_range.end;
-    }
-
-    result.push_str(&snippet.fragment()[start_from..]);
-    result
 }

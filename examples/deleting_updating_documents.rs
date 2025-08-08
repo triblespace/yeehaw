@@ -13,30 +13,12 @@ use yeehaw::query::TermQuery;
 use yeehaw::schema::*;
 use yeehaw::{doc, Index, IndexReader, IndexWriter};
 
-// A simple helper function to fetch a single document
-// given its id from our index.
-// It will be helpful to check our work.
-fn extract_doc_given_isbn(
-    reader: &IndexReader,
-    isbn_term: &Term,
-) -> yeehaw::Result<Option<TantivyDocument>> {
+// Helper to check whether a document with the given ISBN exists.
+fn exists_doc_with_isbn(reader: &IndexReader, isbn_term: &Term) -> yeehaw::Result<bool> {
     let searcher = reader.searcher();
-
-    // This is the simplest query you can think of.
-    // It matches all of the documents containing a specific term.
-    //
-    // The second argument is here to tell we don't care about decoding positions,
-    // or term frequencies.
     let term_query = TermQuery::new(isbn_term.clone(), IndexRecordOption::Basic);
     let top_docs = searcher.search(&term_query, &TopDocs::with_limit(1))?;
-
-    if let Some((_score, doc_address)) = top_docs.first() {
-        let doc = searcher.doc(*doc_address)?;
-        Ok(Some(doc))
-    } else {
-        // no doc matching this ID.
-        Ok(None)
-    }
+    Ok(top_docs.first().is_some())
 }
 
 fn main() -> yeehaw::Result<()> {
@@ -61,10 +43,8 @@ fn main() -> yeehaw::Result<()> {
     // use the `STRING` shortcut. `STRING` stands for indexed (without term frequency or positions)
     // and untokenized.
     //
-    // Because we also want to be able to see this `id` in our returned documents,
-    // we also mark the field as stored.
-    let isbn = schema_builder.add_text_field("isbn", STRING | STORED);
-    let title = schema_builder.add_text_field("title", TEXT | STORED);
+    let isbn = schema_builder.add_text_field("isbn", STRING);
+    let title = schema_builder.add_text_field("title", TEXT);
     let schema = schema_builder.build();
 
     let index = Index::create_in_ram(schema.clone());
@@ -92,11 +72,7 @@ fn main() -> yeehaw::Result<()> {
     let frankenstein_isbn = Term::from_field_text(isbn, "978-9176370711");
 
     // Oops our frankenstein doc seems misspelled
-    let frankenstein_doc_misspelled = extract_doc_given_isbn(&reader, &frankenstein_isbn)?.unwrap();
-    assert_eq!(
-        frankenstein_doc_misspelled.to_json(&schema),
-        r#"{"isbn":["978-9176370711"],"title":["Frankentein"]}"#,
-    );
+    assert!(exists_doc_with_isbn(&reader, &frankenstein_isbn)?);
 
     // # Update = Delete + Insert
     //
@@ -106,8 +82,7 @@ fn main() -> yeehaw::Result<()> {
     // and reinsert the document.
     //
     // This can be complicated as it means you need to have access
-    // to the entire document. It is good practise to integrate yeehaw
-    // with a key value store for this reason.
+    // to the entire document.
     //
     // To remove one of the document, we just call `delete_term`
     // on its id.
@@ -134,11 +109,7 @@ fn main() -> yeehaw::Result<()> {
     reader.reload()?;
 
     // No more typo!
-    let frankenstein_new_doc = extract_doc_given_isbn(&reader, &frankenstein_isbn)?.unwrap();
-    assert_eq!(
-        frankenstein_new_doc.to_json(&schema),
-        r#"{"isbn":["978-9176370711"],"title":["Frankenstein"]}"#,
-    );
+    assert!(exists_doc_with_isbn(&reader, &frankenstein_isbn)?);
 
     Ok(())
 }

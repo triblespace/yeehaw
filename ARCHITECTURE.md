@@ -106,7 +106,6 @@ The schema defines all of the fields that the indexes [`Document`](src/schema/do
 
 Depending on the type of the field, you can decide to
 
-- put it in the docstore
 - store it as a fast field
 - index it
 
@@ -134,29 +133,6 @@ This conversion is done by the serializer.
 
 Finally, the reader is in charge of offering an API to read on this on-disk read-only representation.
 In tantivy, readers are designed to require very little anonymous memory. The data is read straight from an mmapped file, and loading an index is as fast as mmapping its files.
-
-## [store/](src/store): Here is my DocId, Gimme my document
-
-The docstore is a row-oriented storage that, for each document, stores a subset of the fields
-that are marked as stored in the schema. The docstore is compressed using a general-purpose algorithm
-like LZ4.
-
-**Useful for**
-
-In search engines, it is often used to display search results.
-Once the top 10 documents have been identified, we fetch them from the store, and display them or their snippet on the search result page (aka SERP).
-
-**Not useful for**
-
-Fetching a document from the store is typically a "slow" operation. It usually consists in
-
-- searching into a compact tree-like data structure to find the position of the right block.
-- decompressing a small block
-- returning the document from this block.
-
-It is NOT meant to be called for every document matching a query.
-
-As a rule of thumb, if you hit the docstore more than 100 times per search query, you are probably misusing tantivy.
 
 ## [fastfield/](src/fastfield): Here is my DocId, Gimme my value
 

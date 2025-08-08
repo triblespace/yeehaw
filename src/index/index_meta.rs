@@ -1,15 +1,12 @@
 use std::collections::HashSet;
 use std::fmt;
 use std::path::PathBuf;
-use std::sync::atomic::AtomicBool;
-use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
 use super::SegmentComponent;
 use crate::index::SegmentId;
 use crate::schema::Schema;
-use crate::store::Compressor;
 use crate::{Inventory, Opstamp, TrackedObject};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -37,7 +34,6 @@ impl SegmentMetaInventory {
         let inner = InnerSegmentMeta {
             segment_id,
             max_doc,
-            include_temp_doc_store: Arc::new(AtomicBool::new(true)),
             deletes: None,
         };
         SegmentMeta::from(self.inventory.track(inner))
@@ -85,15 +81,6 @@ impl SegmentMeta {
         self.tracked.segment_id
     }
 
-    /// Removes the Component::TempStore from the alive list and
-    /// therefore marks the temp docstore file to be deleted by
-    /// the garbage collection.
-    pub fn untrack_temp_docstore(&self) {
-        self.tracked
-            .include_temp_doc_store
-            .store(false, std::sync::atomic::Ordering::Relaxed);
-    }
-
     /// Returns the number of deleted documents.
     pub fn num_deleted_docs(&self) -> u32 {
         self.tracked
@@ -111,20 +98,9 @@ impl SegmentMeta {
     /// is by removing all files that have been created by tantivy
     /// and are not used by any segment anymore.
     pub fn list_files(&self) -> HashSet<PathBuf> {
-        if self
-            .tracked
-            .include_temp_doc_store
-            .load(std::sync::atomic::Ordering::Relaxed)
-        {
-            SegmentComponent::iterator()
-                .map(|component| self.relative_path(*component))
-                .collect::<HashSet<PathBuf>>()
-        } else {
-            SegmentComponent::iterator()
-                .filter(|comp| *comp != &SegmentComponent::TempStore)
-                .map(|component| self.relative_path(*component))
-                .collect::<HashSet<PathBuf>>()
-        }
+        SegmentComponent::iterator()
+            .map(|component| self.relative_path(*component))
+            .collect::<HashSet<PathBuf>>()
     }
 
     /// Returns the relative path of a component of our segment.
@@ -137,8 +113,6 @@ impl SegmentMeta {
             SegmentComponent::Postings => ".idx".to_string(),
             SegmentComponent::Positions => ".pos".to_string(),
             SegmentComponent::Terms => ".term".to_string(),
-            SegmentComponent::Store => ".store".to_string(),
-            SegmentComponent::TempStore => ".store.temp".to_string(),
             SegmentComponent::FastFields => ".fast".to_string(),
             SegmentComponent::FieldNorms => ".fieldnorm".to_string(),
             SegmentComponent::Delete => format!(".{}.del", self.delete_opstamp().unwrap_or(0)),
@@ -183,7 +157,6 @@ impl SegmentMeta {
             segment_id: inner_meta.segment_id,
             max_doc,
             deletes: None,
-            include_temp_doc_store: Arc::new(AtomicBool::new(true)),
         });
         SegmentMeta { tracked }
     }
@@ -202,7 +175,6 @@ impl SegmentMeta {
         let tracked = self.tracked.map(move |inner_meta| InnerSegmentMeta {
             segment_id: inner_meta.segment_id,
             max_doc: inner_meta.max_doc,
-            include_temp_doc_store: Arc::new(AtomicBool::new(true)),
             deletes: Some(delete_meta),
         });
         SegmentMeta { tracked }
@@ -214,14 +186,6 @@ struct InnerSegmentMeta {
     segment_id: SegmentId,
     max_doc: u32,
     deletes: Option<DeleteMeta>,
-    /// If you want to avoid the SegmentComponent::TempStore file to be covered by
-    /// garbage collection and deleted, set this to true. This is used during merge.
-    #[serde(skip)]
-    #[serde(default = "default_temp_store")]
-    pub(crate) include_temp_doc_store: Arc<AtomicBool>,
-}
-fn default_temp_store() -> Arc<AtomicBool> {
-    Arc::new(AtomicBool::new(false))
 }
 
 impl InnerSegmentMeta {
@@ -232,48 +196,9 @@ impl InnerSegmentMeta {
     }
 }
 
-fn return_true() -> bool {
-    true
-}
-
-fn is_true(val: &bool) -> bool {
-    *val
-}
-
 /// Search Index Settings.
-///
-/// Contains settings which are applied on the whole
-/// index, like presort documents.
-#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
-pub struct IndexSettings {
-    /// The `Compressor` used to compress the doc store.
-    #[serde(default)]
-    pub docstore_compression: Compressor,
-    /// If set to true, docstore compression will happen on a dedicated thread.
-    /// (defaults: true)
-    #[doc(hidden)]
-    #[serde(default = "return_true")]
-    #[serde(skip_serializing_if = "is_true")]
-    pub docstore_compress_dedicated_thread: bool,
-    #[serde(default = "default_docstore_blocksize")]
-    /// The size of each block that will be compressed and written to disk
-    pub docstore_blocksize: usize,
-}
-
-/// Must be a function to be compatible with serde defaults
-fn default_docstore_blocksize() -> usize {
-    16_384
-}
-
-impl Default for IndexSettings {
-    fn default() -> Self {
-        Self {
-            docstore_compression: Compressor::default(),
-            docstore_blocksize: default_docstore_blocksize(),
-            docstore_compress_dedicated_thread: true,
-        }
-    }
-}
+#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Default)]
+pub struct IndexSettings {}
 
 /// The order to sort by
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
@@ -390,9 +315,6 @@ mod tests {
     use super::IndexMeta;
     use crate::index::index_meta::UntrackedIndexMeta;
     use crate::schema::{Schema, TEXT};
-    use crate::store::Compressor;
-    #[cfg(feature = "zstd-compression")]
-    use crate::store::ZstdCompressor;
     use crate::IndexSettings;
 
     #[test]
@@ -412,7 +334,7 @@ mod tests {
         let json = serde_json::ser::to_string(&index_metas).expect("serialization failed");
         assert_eq!(
             json,
-            r#"{"index_settings":{"docstore_compression":"lz4","docstore_blocksize":16384},"segments":[],"schema":[{"name":"text","type":"text","options":{"indexing":{"record":"position","fieldnorms":true,"tokenizer":"default"},"stored":false,"fast":false}}],"opstamp":0}"#
+            r#"{"index_settings":{},"segments":[],"schema":[{"name":"text","type":"text","options":{"indexing":{"record":"position","fieldnorms":true,"tokenizer":"default"},"stored":false,"fast":false}}],"opstamp":0}"#
         );
 
         let deser_meta: UntrackedIndexMeta = serde_json::from_str(&json).unwrap();
@@ -420,115 +342,13 @@ mod tests {
         assert_eq!(index_metas.schema, deser_meta.schema);
         assert_eq!(index_metas.opstamp, deser_meta.opstamp);
     }
-
     #[test]
-    #[cfg(feature = "zstd-compression")]
-    fn test_serialize_metas_zstd_compressor() {
-        let schema = {
-            let mut schema_builder = Schema::builder();
-            schema_builder.add_text_field("text", TEXT);
-            schema_builder.build()
-        };
-        let index_metas = IndexMeta {
-            index_settings: IndexSettings {
-                docstore_compression: crate::store::Compressor::Zstd(ZstdCompressor {
-                    compression_level: Some(4),
-                }),
-                docstore_blocksize: 1_000_000,
-                docstore_compress_dedicated_thread: true,
-            },
-            segments: Vec::new(),
-            schema,
-            opstamp: 0u64,
-            payload: None,
-        };
-        let json = serde_json::ser::to_string(&index_metas).expect("serialization failed");
-        assert_eq!(
-            json,
-            r#"{"index_settings":{"docstore_compression":"zstd(compression_level=4)","docstore_blocksize":1000000},"segments":[],"schema":[{"name":"text","type":"text","options":{"indexing":{"record":"position","fieldnorms":true,"tokenizer":"default"},"stored":false,"fast":false}}],"opstamp":0}"#
-        );
-
-        let deser_meta: UntrackedIndexMeta = serde_json::from_str(&json).unwrap();
-        assert_eq!(index_metas.index_settings, deser_meta.index_settings);
-        assert_eq!(index_metas.schema, deser_meta.schema);
-        assert_eq!(index_metas.opstamp, deser_meta.opstamp);
-    }
-
-    #[test]
-    #[cfg(all(feature = "lz4-compression", feature = "zstd-compression"))]
-    fn test_serialize_metas_invalid_comp() {
-        let json = r#"{"index_settings":{"docstore_compression":"zsstd","docstore_blocksize":1000000},"segments":[],"schema":[{"name":"text","type":"text","options":{"indexing":{"record":"position","fieldnorms":true,"tokenizer":"default"},"stored":false,"fast":false}}],"opstamp":0}"#;
-
-        let err = serde_json::from_str::<UntrackedIndexMeta>(json).unwrap_err();
-        assert_eq!(
-            err.to_string(),
-            "unknown variant `zsstd`, expected one of `none`, `lz4`, `zstd`, \
-             `zstd(compression_level=5)` at line 1 column 49"
-                .to_string()
-        );
-
-        let json = r#"{"index_settings":{"docstore_compression":"zstd(bla=10)","docstore_blocksize":1000000},"segments":[],"schema":[{"name":"text","type":"text","options":{"indexing":{"record":"position","fieldnorms":true,"tokenizer":"default"},"stored":false,"fast":false}}],"opstamp":0}"#;
-
-        let err = serde_json::from_str::<UntrackedIndexMeta>(json).unwrap_err();
-        assert_eq!(
-            err.to_string(),
-            "unknown zstd option \"bla\" at line 1 column 56".to_string()
-        );
-    }
-
-    #[test]
-    #[cfg(not(feature = "zstd-compression"))]
-    fn test_serialize_metas_unsupported_comp() {
-        let json = r#"{"index_settings":{"docstore_compression":"zstd","docstore_blocksize":1000000},"segments":[],"schema":[{"name":"text","type":"text","options":{"indexing":{"record":"position","fieldnorms":true,"tokenizer":"default"},"stored":false,"fast":false}}],"opstamp":0}"#;
-
-        let err = serde_json::from_str::<UntrackedIndexMeta>(json).unwrap_err();
-        assert_eq!(
-            err.to_string(),
-            "unsupported variant `zstd`, please enable Tantivy's `zstd-compression` feature at \
-             line 1 column 48"
-                .to_string()
-        );
-    }
-
-    #[test]
-    #[cfg(feature = "lz4-compression")]
     fn test_index_settings_default() {
-        let mut index_settings = IndexSettings::default();
-        assert_eq!(
-            index_settings,
-            IndexSettings {
-                docstore_compression: Compressor::default(),
-                docstore_compress_dedicated_thread: true,
-                docstore_blocksize: 16_384
-            }
-        );
-        {
-            let index_settings_json = serde_json::to_value(&index_settings).unwrap();
-            assert_eq!(
-                index_settings_json,
-                serde_json::json!({
-                    "docstore_compression": "lz4",
-                    "docstore_blocksize": 16384
-                })
-            );
-            let index_settings_deser: IndexSettings =
-                serde_json::from_value(index_settings_json).unwrap();
-            assert_eq!(index_settings_deser, index_settings);
-        }
-        {
-            index_settings.docstore_compress_dedicated_thread = false;
-            let index_settings_json = serde_json::to_value(&index_settings).unwrap();
-            assert_eq!(
-                index_settings_json,
-                serde_json::json!({
-                    "docstore_compression": "lz4",
-                    "docstore_blocksize": 16384,
-                    "docstore_compress_dedicated_thread": false,
-                })
-            );
-            let index_settings_deser: IndexSettings =
-                serde_json::from_value(index_settings_json).unwrap();
-            assert_eq!(index_settings_deser, index_settings);
-        }
+        let index_settings = IndexSettings::default();
+        let index_settings_json = serde_json::to_value(&index_settings).unwrap();
+        assert_eq!(index_settings_json, serde_json::json!({}));
+        let index_settings_deser: IndexSettings =
+            serde_json::from_value(index_settings_json).unwrap();
+        assert_eq!(index_settings_deser, index_settings);
     }
 }

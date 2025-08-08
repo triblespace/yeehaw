@@ -37,8 +37,8 @@
 //! ## A basic custom document
 //! ```
 //! use std::collections::{btree_map, BTreeMap};
-//! use tantivy::schema::{Document, Field};
-//! use tantivy::schema::document::{DeserializeError, DocumentDeserialize, DocumentDeserializer};
+//! use yeehaw::schema::{Document, Field};
+//! use yeehaw::schema::document::{DeserializeError, DocumentDeserialize, DocumentDeserializer};
 //!
 //! /// Our custom document to let us use a map of `serde_json::Values`.
 //! pub struct MyCustomDocument {
@@ -110,7 +110,7 @@
 //! on to the [ReferenceValue].
 //!
 //! This is why [Value] is implemented for `&'a serde_json::Value` and
-//! [&'a tantivy::schema::document::OwnedValue](OwnedValue) but not for their owned counterparts, as
+//! [&'a yeehaw::schema::document::OwnedValue](OwnedValue) but not for their owned counterparts, as
 //! we cannot satisfy the lifetime bounds necessary when indexing the documents.
 //!
 //! ### A note about returning values
@@ -119,9 +119,9 @@
 //! kept in the parent document, and the value passed into Tantivy.
 //!
 //! ```
-//! use tantivy::schema::document::ReferenceValue;
-//! use tantivy::schema::document::ReferenceValueLeaf;
-//! use tantivy::schema::{Value};
+//! use yeehaw::schema::document::ReferenceValue;
+//! use yeehaw::schema::document::ReferenceValueLeaf;
+//! use yeehaw::schema::{Value};
 //!
 //! #[derive(Debug)]
 //! /// Our custom value type which has 3 types, a string, float and bool.
@@ -161,13 +161,11 @@ mod de;
 mod default_document;
 mod existing_type_impls;
 mod owned_value;
-mod se;
 mod value;
 
 use std::collections::BTreeMap;
 use std::mem;
 
-pub(crate) use self::de::BinaryDocumentDeserializer;
 pub use self::de::{
     ArrayAccess, DeserializeError, DocumentDeserialize, DocumentDeserializer, ObjectAccess,
     ValueDeserialize, ValueDeserializer, ValueType, ValueVisitor,
@@ -176,7 +174,6 @@ pub use self::default_document::{
     CompactDocArrayIter, CompactDocObjectIter, CompactDocValue, DocParsingError, TantivyDocument,
 };
 pub use self::owned_value::OwnedValue;
-pub(crate) use self::se::BinaryDocumentSerializer;
 pub use self::value::{ReferenceValue, ReferenceValueLeaf, Value};
 use super::*;
 
@@ -251,26 +248,4 @@ pub trait Document: Send + Sync + 'static {
         serde_json::to_string(&self.to_named_doc(schema))
             .expect("doc encoding failed. This is a bug")
     }
-}
-
-pub(crate) mod type_codes {
-    pub const TEXT_CODE: u8 = 0;
-    pub const U64_CODE: u8 = 1;
-    pub const I64_CODE: u8 = 2;
-    pub const HIERARCHICAL_FACET_CODE: u8 = 3;
-    pub const BYTES_CODE: u8 = 4;
-    pub const DATE_CODE: u8 = 5;
-    pub const F64_CODE: u8 = 6;
-    pub const EXT_CODE: u8 = 7;
-
-    #[deprecated]
-    pub const JSON_OBJ_CODE: u8 = 8; // Replaced by the `OBJECT_CODE`.
-    pub const BOOL_CODE: u8 = 9;
-    pub const IP_CODE: u8 = 10;
-    pub const NULL_CODE: u8 = 11;
-    pub const ARRAY_CODE: u8 = 12;
-    pub const OBJECT_CODE: u8 = 13;
-
-    // Extended type codes
-    pub const TOK_STR_EXT_CODE: u8 = 0;
 }

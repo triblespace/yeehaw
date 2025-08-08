@@ -126,12 +126,12 @@ impl<TFruit: Fruit> FruitHandle<TFruit> {
 /// documentation](./index.html#combining-several-collectors).
 ///
 /// ```rust
-/// use tantivy::collector::{Count, TopDocs, MultiCollector};
-/// use tantivy::query::QueryParser;
-/// use tantivy::schema::{Schema, TEXT};
-/// use tantivy::{doc, Index};
+/// use yeehaw::collector::{Count, TopDocs, MultiCollector};
+/// use yeehaw::query::QueryParser;
+/// use yeehaw::schema::{Schema, TEXT};
+/// use yeehaw::{doc, Index};
 ///
-/// # fn main() -> tantivy::Result<()> {
+/// # fn main() -> yeehaw::Result<()> {
 /// let mut schema_builder = Schema::builder();
 /// let title = schema_builder.add_text_field("title", TEXT);
 /// let schema = schema_builder.build();

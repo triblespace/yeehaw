@@ -34,13 +34,13 @@ use crate::{DocId, Score};
 /// # Example
 ///
 /// ```rust
-/// use tantivy::collector::Count;
-/// use tantivy::query::RangeQuery;
-/// use tantivy::Term;
-/// use tantivy::schema::{Schema, INDEXED};
-/// use tantivy::{doc, Index, IndexWriter};
+/// use yeehaw::collector::Count;
+/// use yeehaw::query::RangeQuery;
+/// use yeehaw::Term;
+/// use yeehaw::schema::{Schema, INDEXED};
+/// use yeehaw::{doc, Index, IndexWriter};
 /// use std::ops::Bound;
-/// # fn test() -> tantivy::Result<()> {
+/// # fn test() -> yeehaw::Result<()> {
 /// let mut schema_builder = Schema::builder();
 /// let year_field = schema_builder.add_u64_field("year", INDEXED);
 /// let schema = schema_builder.build();

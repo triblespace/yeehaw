@@ -353,8 +353,6 @@ impl SegmentWriter {
         self.doc_opstamps.push(opstamp);
         self.fast_field_writers.add_document(&document)?;
         self.index_document(&document)?;
-        let doc_writer = self.segment_serializer.get_store_writer();
-        doc_writer.store(&document, &self.schema)?;
         self.max_doc += 1;
         Ok(())
     }
@@ -420,27 +418,25 @@ fn remap_and_write(
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
-    use std::path::{Path, PathBuf};
+    use std::path::PathBuf;
 
     use columnar::ColumnType;
     use tempfile::TempDir;
 
     use crate::collector::{Count, TopDocs};
-    use crate::directory::RamDirectory;
     use crate::fastfield::FastValue;
     use crate::postings::{Postings, TermInfo};
     use crate::query::{PhraseQuery, QueryParser};
     use crate::schema::{
-        Document, IndexRecordOption, OwnedValue, Schema, TextFieldIndexing, TextOptions, Value,
+        Document, IndexRecordOption, OwnedValue, Schema, TextFieldIndexing, TextOptions,
         DATE_TIME_PRECISION_INDEXED, FAST, STORED, STRING, TEXT,
     };
-    use crate::store::{Compressor, StoreReader, StoreWriter};
     use crate::time::format_description::well_known::Rfc3339;
     use crate::time::OffsetDateTime;
     use crate::tokenizer::{PreTokenizedString, Token};
     use crate::{
-        DateTime, Directory, DocAddress, DocSet, Index, IndexWriter, SegmentReader,
-        TantivyDocument, Term, TERMINATED,
+        DateTime, DocAddress, DocSet, Index, IndexWriter, SegmentReader, TantivyDocument, Term,
+        TERMINATED,
     };
 
     #[test]
@@ -454,47 +450,6 @@ mod tests {
         assert_eq!(compute_initial_table_size(4_000_000_000).unwrap(), 1 << 19);
     }
 
-    #[test]
-    fn test_prepare_for_store() {
-        let mut schema_builder = Schema::builder();
-        let text_field = schema_builder.add_text_field("title", TEXT | STORED);
-        let schema = schema_builder.build();
-        let mut doc = TantivyDocument::default();
-        let pre_tokenized_text = PreTokenizedString {
-            text: String::from("A"),
-            tokens: vec![Token {
-                offset_from: 0,
-                offset_to: 1,
-                position: 0,
-                text: String::from("A"),
-                position_length: 1,
-            }],
-        };
-
-        doc.add_pre_tokenized_text(text_field, pre_tokenized_text);
-        doc.add_text(text_field, "title");
-
-        let path = Path::new("store");
-        let directory = RamDirectory::create();
-        let store_wrt = directory.open_write(path).unwrap();
-
-        let mut store_writer = StoreWriter::new(store_wrt, Compressor::None, 0, false).unwrap();
-        store_writer.store(&doc, &schema).unwrap();
-        store_writer.close().unwrap();
-
-        let reader = StoreReader::open(directory.open_read(path).unwrap(), 0).unwrap();
-        let doc = reader.get::<TantivyDocument>(0).unwrap();
-
-        assert_eq!(doc.field_values().count(), 2);
-        assert_eq!(
-            doc.get_all(text_field).next().unwrap().as_value().as_str(),
-            Some("A")
-        );
-        assert_eq!(
-            doc.get_all(text_field).nth(1).unwrap().as_value().as_str(),
-            Some("title")
-        );
-    }
     #[test]
     fn test_simple_json_indexing() {
         let mut schema_builder = Schema::builder();
@@ -595,16 +550,10 @@ mod tests {
         let doc = doc!(json_field=>json_val.clone());
         let index = Index::create_in_ram(schema.clone());
         let mut writer = index.writer_for_tests().unwrap();
-        writer.add_document(doc).unwrap();
+        writer.add_document(doc.clone()).unwrap();
         writer.commit().unwrap();
         let reader = index.reader().unwrap();
         let searcher = reader.searcher();
-        let doc = searcher
-            .doc::<TantivyDocument>(DocAddress {
-                segment_ord: 0u32,
-                doc_id: 0u32,
-            })
-            .unwrap();
         let serdeser_json_val = serde_json::from_str::<serde_json::Value>(&doc.to_json(&schema))
             .unwrap()
             .get("json")

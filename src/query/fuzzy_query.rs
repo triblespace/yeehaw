@@ -35,12 +35,12 @@ impl Automaton for DfaWrapper {
 /// containing a specific term that is within
 /// Levenshtein distance
 /// ```rust
-/// use tantivy::collector::{Count, TopDocs};
-/// use tantivy::query::FuzzyTermQuery;
-/// use tantivy::schema::{Schema, TEXT};
-/// use tantivy::{doc, Index, IndexWriter, Term};
+/// use yeehaw::collector::{Count, TopDocs};
+/// use yeehaw::query::FuzzyTermQuery;
+/// use yeehaw::schema::{Schema, TEXT};
+/// use yeehaw::{doc, Index, IndexWriter, Term};
 ///
-/// fn example() -> tantivy::Result<()> {
+/// fn example() -> yeehaw::Result<()> {
 ///     let mut schema_builder = Schema::builder();
 ///     let title = schema_builder.add_text_field("title", TEXT);
 ///     let schema = schema_builder.build();

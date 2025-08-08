@@ -32,7 +32,7 @@ use crate::TantivyError;
 /// # Example
 ///
 /// ```rust
-/// use tantivy::tokenizer::*;
+/// use yeehaw::tokenizer::*;
 ///
 /// let mut tokenizer = NgramTokenizer::new(2, 3, false).unwrap();
 /// let mut stream = tokenizer.token_stream("hello");

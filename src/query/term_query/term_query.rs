@@ -17,11 +17,11 @@ use crate::Term;
 /// * `field norm` - number of tokens in the field.
 ///
 /// ```rust
-/// use tantivy::collector::{Count, TopDocs};
-/// use tantivy::query::TermQuery;
-/// use tantivy::schema::{Schema, TEXT, IndexRecordOption};
-/// use tantivy::{doc, Index, IndexWriter, Term};
-/// # fn test() -> tantivy::Result<()> {
+/// use yeehaw::collector::{Count, TopDocs};
+/// use yeehaw::query::TermQuery;
+/// use yeehaw::schema::{Schema, TEXT, IndexRecordOption};
+/// use yeehaw::{doc, Index, IndexWriter, Term};
+/// # fn test() -> yeehaw::Result<()> {
 /// let mut schema_builder = Schema::builder();
 /// let title = schema_builder.add_text_field("title", TEXT);
 /// let schema = schema_builder.build();

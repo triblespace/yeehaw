@@ -8,7 +8,6 @@
 // - create an index in a directory
 // - index a few documents into our index
 // - search for the best document matching a basic query
-// - retrieve the best document's original content.
 
 // ---
 // Importing yeehaw...
@@ -33,28 +32,10 @@ fn main() -> yeehaw::Result<()> {
     // First we need to define a schema ...
     let mut schema_builder = Schema::builder();
 
-    // Our first field is title.
-    // We want full-text search for it, and we also want
-    // to be able to retrieve the document after the search.
-    //
-    // `TEXT | STORED` is some syntactic sugar to describe
-    // that.
-    //
-    // `TEXT` means the field should be tokenized and indexed,
-    // along with its term frequency and term positions.
-    //
-    // `STORED` means that the field will also be saved
-    // in a compressed, row-oriented key-value store.
-    // This store is useful for reconstructing the
-    // documents that were selected during the search phase.
-    schema_builder.add_text_field("title", TEXT | STORED);
+    // Our first field is title. We want full-text search for it.
+    schema_builder.add_text_field("title", TEXT);
 
     // Our second field is body.
-    // We want full-text search for it, but we do not
-    // need to be able to retrieve it
-    // for our application.
-    //
-    // We can make our index lighter by omitting the `STORED` flag.
     schema_builder.add_text_field("body", TEXT);
 
     let schema = schema_builder.build();
@@ -210,15 +191,8 @@ fn main() -> yeehaw::Result<()> {
     // We can now perform our query.
     let top_docs = searcher.search(&query, &TopDocs::with_limit(10))?;
 
-    // The actual documents still need to be
-    // retrieved from Yeehaw's store.
-    //
-    // Since the body field was not configured as stored,
-    // the document returned will only contain
-    // a title.
     for (_score, doc_address) in top_docs {
-        let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
-        println!("{}", retrieved_doc.to_json(&schema));
+        println!("{doc_address:?}");
     }
 
     // We can also get an explanation to understand

@@ -20,23 +20,19 @@ This document outlines the long term plan to rewrite this project so that it rel
    - Replace the `Directory` abstraction with a backend that reads and writes blobs via the Trible Space `BlobStore`.
    - Index writers and readers operate on blob handles instead of filesystem paths.
 
-3. **Drop the docstore module**
-   - Primary documents are kept in Trible Space; segments no longer store their own row oriented docstore.
-   - Search results fetch documents via blob handles.
-
-4. **Remove `Opstamp` and use commit handles**
+3. **Remove `Opstamp` and use commit handles**
    - Commits record the segments they include.
    - Merges rely on commit ancestry instead of monotonic operation stamps.
 
-5. **Introduce 128-bit IDs with `Universe` mapping**
+4. **Introduce 128-bit IDs with `Universe` mapping**
    - Map external `u128` identifiers to compact `DocId` values.
    - Persist the mapping so search results can translate back.
 
-6. **Typed DSL for fuzzy search**
+5. **Typed DSL for fuzzy search**
    - Generate search filters from Trible namespaces.
    - Provide macros that participate in both `find!` queries and full text search.
 
-7. **Index update merge workflow**
+6. **Index update merge workflow**
    - Wrap indexing operations in workspace commits.
    - Use Trible's compare-and-swap push mechanism so multiple writers merge gracefully.
 
@@ -59,3 +55,5 @@ This inventory captures the direction of the rewrite and the major tasks require
     - Migrate inline benchmarks to a stable harness so the `unstable` feature can be tested on stable Rust.
 15. **Evaluate removing sstable term dictionary and crate now that `quickwit` feature is gone**
     - Determine whether the `sstable` crate should remain in the workspace or be extracted.
+16. **Prune obsolete document type codes** *(done)*
+    - Removed unused `type_codes` constants after dropping docstore serialization.

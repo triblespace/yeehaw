@@ -1,6 +1,6 @@
 //! # Example
 //! ```rust
-//! use tantivy::tokenizer::*;
+//! use yeehaw::tokenizer::*;
 //!
 //! let mut tokenizer = TextAnalyzer::builder(RawTokenizer::default())
 //!   .filter(AlphaNumOnlyFilter)

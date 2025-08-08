@@ -19,8 +19,6 @@ use crate::schema::Field;
 pub enum ComponentSpaceUsage {
     /// Data is stored per field in a uniform way
     PerField(PerFieldSpaceUsage),
-    /// Data is stored in separate pieces in the store
-    Store(StoreSpaceUsage),
     /// Some sort of raw byte count
     Basic(ByteCount),
 }
@@ -69,9 +67,6 @@ pub struct SegmentSpaceUsage {
     positions: PerFieldSpaceUsage,
     fast_fields: PerFieldSpaceUsage,
     fieldnorms: PerFieldSpaceUsage,
-
-    store: StoreSpaceUsage,
-
     deletes: ByteCount,
 
     total: ByteCount,
@@ -86,7 +81,6 @@ impl SegmentSpaceUsage {
         positions: PerFieldSpaceUsage,
         fast_fields: PerFieldSpaceUsage,
         fieldnorms: PerFieldSpaceUsage,
-        store: StoreSpaceUsage,
         deletes: ByteCount,
     ) -> SegmentSpaceUsage {
         let total = termdict.total()
@@ -94,7 +88,6 @@ impl SegmentSpaceUsage {
             + positions.total()
             + fast_fields.total()
             + fieldnorms.total()
-            + store.total()
             + deletes;
         SegmentSpaceUsage {
             num_docs,
@@ -103,7 +96,6 @@ impl SegmentSpaceUsage {
             positions,
             fast_fields,
             fieldnorms,
-            store,
             deletes,
             total,
         }
@@ -122,8 +114,6 @@ impl SegmentSpaceUsage {
             FastFields => PerField(self.fast_fields().clone()),
             FieldNorms => PerField(self.fieldnorms().clone()),
             Terms => PerField(self.termdict().clone()),
-            SegmentComponent::Store => ComponentSpaceUsage::Store(self.store().clone()),
-            SegmentComponent::TempStore => ComponentSpaceUsage::Store(self.store().clone()),
             Delete => Basic(self.deletes()),
         }
     }
@@ -158,11 +148,6 @@ impl SegmentSpaceUsage {
         &self.fieldnorms
     }
 
-    /// Space usage for stored documents
-    pub fn store(&self) -> &StoreSpaceUsage {
-        &self.store
-    }
-
     /// Space usage for document deletions
     pub fn deletes(&self) -> ByteCount {
         self.deletes
@@ -171,38 +156,6 @@ impl SegmentSpaceUsage {
     /// Total space usage in bytes for this segment.
     pub fn total(&self) -> ByteCount {
         self.total
-    }
-}
-
-/// Represents space usage for the Store for this segment.
-///
-/// This is composed of two parts.
-/// `data` represents the compressed data itself.
-/// `offsets` represents a lookup to find the start of a block
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct StoreSpaceUsage {
-    data: ByteCount,
-    offsets: ByteCount,
-}
-
-impl StoreSpaceUsage {
-    pub(crate) fn new(data: ByteCount, offsets: ByteCount) -> StoreSpaceUsage {
-        StoreSpaceUsage { data, offsets }
-    }
-
-    /// Space usage for the data part of the store
-    pub fn data_usage(&self) -> ByteCount {
-        self.data
-    }
-
-    /// Space usage for the offsets part of the store (doc ID -> offset)
-    pub fn offsets_usage(&self) -> ByteCount {
-        self.offsets
-    }
-
-    /// Total space usage in bytes for this Store
-    pub fn total(&self) -> ByteCount {
-        self.data + self.offsets
     }
 }
 
@@ -291,7 +244,7 @@ impl FieldUsage {
 #[cfg(test)]
 mod test {
     use crate::index::Index;
-    use crate::schema::{Field, Schema, FAST, INDEXED, STORED, TEXT};
+    use crate::schema::{Field, Schema, FAST, INDEXED, TEXT};
     use crate::space_usage::PerFieldSpaceUsage;
     use crate::{IndexWriter, Term};
 
@@ -355,7 +308,6 @@ mod test {
         expect_single_field(segment.fast_fields(), &name, 1, 512);
         expect_single_field(segment.fieldnorms(), &name, 1, 512);
         // TODO: understand why the following fails
-        //        assert_eq!(0, segment.store().total());
         assert_eq!(segment.deletes(), 0);
         Ok(())
     }
@@ -394,48 +346,6 @@ mod test {
         expect_single_field(segment.positions(), &name, 1, 512);
         assert_eq!(segment.fast_fields().total(), 0);
         expect_single_field(segment.fieldnorms(), &name, 1, 512);
-        // TODO: understand why the following fails
-        //        assert_eq!(0, segment.store().total());
-        assert_eq!(segment.deletes(), 0);
-        Ok(())
-    }
-
-    #[test]
-    fn test_store() -> crate::Result<()> {
-        let mut schema_builder = Schema::builder();
-        let name = schema_builder.add_text_field("name", STORED);
-        let schema = schema_builder.build();
-        let index = Index::create_in_ram(schema);
-
-        {
-            let mut index_writer = index.writer_for_tests()?;
-            index_writer.add_document(doc!(name => "hi"))?;
-            index_writer.add_document(doc!(name => "this is a test"))?;
-            index_writer.add_document(
-                doc!(name => "some more documents with some word overlap with the other test"),
-            )?;
-            index_writer.add_document(doc!(name => "hello hi goodbye"))?;
-            index_writer.commit()?;
-        }
-        let reader = index.reader()?;
-        let searcher = reader.searcher();
-        let searcher_space_usage = searcher.space_usage()?;
-        assert!(searcher_space_usage.total() > 0);
-        assert_eq!(1, searcher_space_usage.segments().len());
-
-        let segment = &searcher_space_usage.segments()[0];
-        assert!(segment.total() > 0);
-
-        assert_eq!(4, segment.num_docs());
-
-        assert_eq!(segment.termdict().total(), 0);
-        assert_eq!(segment.postings().total(), 0);
-        assert_eq!(segment.positions().total(), 0);
-        assert_eq!(segment.fast_fields().total(), 0);
-        assert_eq!(segment.fieldnorms().total(), 0);
-        assert!(segment.store().total() > 0);
-        assert!(segment.store().total() < 512);
-        assert_eq!(segment.deletes(), 0);
         Ok(())
     }
 

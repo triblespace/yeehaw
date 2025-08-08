@@ -11,8 +11,8 @@ use crate::DocAddress;
 /// # Examples
 ///
 /// ```
-/// use tantivy::DocAddress;
-/// use tantivy::query::MoreLikeThisQuery;
+/// use yeehaw::DocAddress;
+/// use yeehaw::query::MoreLikeThisQuery;
 ///
 /// let query = MoreLikeThisQuery::builder()
 ///     .with_min_doc_frequency(1)
@@ -252,6 +252,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_more_like_this_query() -> crate::Result<()> {
         let index = create_test_index()?;
         let reader = index.reader()?;

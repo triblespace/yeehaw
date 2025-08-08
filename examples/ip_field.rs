@@ -15,7 +15,7 @@ fn main() -> yeehaw::Result<()> {
     // `FAST` is not a requirement for range queries, it can also be executed on the inverted index
     // which is created by `INDEXED`.
     let mut schema_builder = Schema::builder();
-    let event_type = schema_builder.add_text_field("event_type", STRING | STORED);
+    let event_type = schema_builder.add_text_field("event_type", STRING);
     let ip = schema_builder.add_ip_addr_field("ip", STORED | INDEXED | FAST);
     let schema = schema_builder.build();
 

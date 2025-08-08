@@ -82,8 +82,8 @@ fn save_new_metas(
 /// # Examples
 ///
 /// ```
-/// use tantivy::schema::*;
-/// use tantivy::{Index, IndexSettings};
+/// use yeehaw::schema::*;
+/// use yeehaw::Index;
 ///
 /// let mut schema_builder = Schema::builder();
 /// let id_field = schema_builder.add_text_field("id", STRING);
@@ -95,11 +95,7 @@ fn save_new_metas(
 /// );
 ///
 /// let schema = schema_builder.build();
-/// let settings = IndexSettings{
-///     docstore_blocksize: 100_000,
-///     ..Default::default()
-/// };
-/// let index = Index::builder().schema(schema).settings(settings).create_in_ram();
+/// let index = Index::builder().schema(schema).create_in_ram();
 /// ```
 pub struct IndexBuilder {
     schema: Option<Schema>,

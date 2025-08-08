@@ -9,7 +9,7 @@ fn main() -> yeehaw::Result<()> {
     //
     // first we need to define a schema ...
     let mut schema_builder = Schema::builder();
-    schema_builder.add_text_field("title", TEXT | STORED);
+    schema_builder.add_text_field("title", TEXT);
     schema_builder.add_text_field("body", TEXT);
     schema_builder.add_u64_field("year", INDEXED);
     let schema = schema_builder.build();

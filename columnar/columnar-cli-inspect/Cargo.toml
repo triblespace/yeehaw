@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-tantivy = {path="../..", package="tantivy"}
+yeehaw = {path="../.."}
 columnar = {path="../", package="tantivy-columnar"}
 common = {path="../../common", package="tantivy-common"}
 

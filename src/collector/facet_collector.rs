@@ -73,12 +73,12 @@ fn facet_depth(facet_bytes: &[u8]) -> usize {
 ///
 ///
 /// ```rust
-/// use tantivy::collector::FacetCollector;
-/// use tantivy::query::AllQuery;
-/// use tantivy::schema::{Facet, Schema, FacetOptions, TEXT};
-/// use tantivy::{doc, Index};
+/// use yeehaw::collector::FacetCollector;
+/// use yeehaw::query::AllQuery;
+/// use yeehaw::schema::{Facet, Schema, FacetOptions, TEXT};
+/// use yeehaw::{doc, Index};
 ///
-/// fn example() -> tantivy::Result<()> {
+/// fn example() -> yeehaw::Result<()> {
 ///     let mut schema_builder = Schema::builder();
 ///
 ///     // Facet have their own specific type.

@@ -12,8 +12,8 @@ use yeehaw::{Index, IndexWriter, TantivyDocument};
 fn main() -> yeehaw::Result<()> {
     // # Defining the schema
     let mut schema_builder = Schema::builder();
-    schema_builder.add_date_field("timestamp", FAST | STORED);
-    let event_type = schema_builder.add_text_field("event_type", STRING | STORED);
+    schema_builder.add_date_field("timestamp", FAST);
+    let event_type = schema_builder.add_text_field("event_type", STRING);
     let attributes = schema_builder.add_json_field("attributes", STORED | TEXT);
     let schema = schema_builder.build();
 

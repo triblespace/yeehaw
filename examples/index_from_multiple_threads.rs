@@ -29,13 +29,13 @@ use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Duration;
 
-use yeehaw::schema::{Schema, STORED, TEXT};
+use yeehaw::schema::{Schema, TEXT};
 use yeehaw::{doc, Index, IndexWriter, Opstamp, TantivyError};
 
 fn main() -> yeehaw::Result<()> {
     // # Defining the schema
     let mut schema_builder = Schema::builder();
-    let title = schema_builder.add_text_field("title", TEXT | STORED);
+    let title = schema_builder.add_text_field("title", TEXT);
     let body = schema_builder.add_text_field("body", TEXT);
     let schema = schema_builder.build();
 

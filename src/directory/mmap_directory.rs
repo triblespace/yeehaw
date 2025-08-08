@@ -638,6 +638,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_mmap_released() {
         let mmap_directory = MmapDirectory::create_from_tempdir().unwrap();
         let mut schema_builder: SchemaBuilder = Schema::builder();

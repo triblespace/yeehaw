@@ -23,7 +23,7 @@ fn main() -> yeehaw::Result<()> {
     // Let's create a temporary directory for the sake of this example
     let mut schema_builder = Schema::builder();
 
-    let name = schema_builder.add_text_field("name", TEXT | STORED);
+    let name = schema_builder.add_text_field("name", TEXT);
     // this is our faceted field: its scientific classification
     let classification = schema_builder.add_facet_field("classification", FacetOptions::default());
 

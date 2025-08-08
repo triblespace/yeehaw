@@ -12,8 +12,13 @@ have been removed to keep the changelog focused on Yeehaw's history.
 - update examples to import the `yeehaw` crate instead of `tantivy`.
 - run preflight tests without enabling the `unstable` feature.
 - handle unknown column codes gracefully in `ColumnarReader::iter_columns`.
+- rewrite doctests and examples to import the `yeehaw` crate directly.
 
 ## Features/Improvements
+- drop docstore module and references in preparation for trible.space rewrite.
+- purge remaining docstore references from core modules and tests.
+- remove docstore-dependent code from examples.
+- drop binary document serializer/deserializer now that docstore is gone.
 - remove `quickwit` feature flag and related async code.
 - add docs/example and Vec<u32> values to sstable [#2660](https://github.com/quickwit-oss/yeehaw/pull/2660)(@PSeitz)
 - Add string fast field support to `TopDocs`. [#2642](https://github.com/quickwit-oss/yeehaw/pull/2642)(@stuhood)
@@ -32,3 +37,4 @@ have been removed to keep the changelog focused on Yeehaw's history.
 - expand documentation for document deserialization traits.
 - reorder inventory tasks to prioritize fixing doctest regressions.
 - remove `quickwit` feature and associated asynchronous APIs.
+- remove obsolete document type codes.

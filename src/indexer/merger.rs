@@ -17,7 +17,6 @@ use crate::indexer::doc_id_mapping::{MappingType, SegmentDocIdMapping};
 use crate::indexer::SegmentSerializer;
 use crate::postings::{InvertedIndexSerializer, Postings, SegmentPostings};
 use crate::schema::{value_type_to_column_type, Field, FieldType, Schema};
-use crate::store::StoreWriter;
 use crate::termdict::{TermMerger, TermOrdinal};
 use crate::{DocAddress, DocId, InvertedIndexReader};
 
@@ -486,40 +485,6 @@ impl IndexMerger {
         Ok(())
     }
 
-    fn write_storable_fields(&self, store_writer: &mut StoreWriter) -> crate::Result<()> {
-        debug_time!("write-storable-fields");
-        debug!("write-storable-field");
-
-        for reader in &self.readers {
-            let store_reader = reader.get_store_reader(1)?;
-            if reader.has_deletes()
-                    // If there is not enough data in the store, we avoid stacking in order to
-                    // avoid creating many small blocks in the doc store. Once we have 5 full blocks,
-                    // we start stacking. In the worst case 2/7 of the blocks would be very small.
-                    // [segment 1 - {1 doc}][segment 2 - {fullblock * 5}{1doc}]
-                    // => 5 * full blocks, 2 * 1 document blocks
-                    //
-                    // In a more realistic scenario the segments are of the same size, so 1/6 of
-                    // the doc stores would be on average half full, given total randomness (which
-                    // is not the case here, but not sure how it behaves exactly).
-                    //
-                    // https://github.com/quickwit-oss/tantivy/issues/1053
-                    //
-                    // take 7 in order to not walk over all checkpoints.
-                    || store_reader.block_checkpoints().take(7).count() < 6
-                    || store_reader.decompressor() != store_writer.compressor().into()
-            {
-                for doc_bytes_res in store_reader.iter_raw(reader.alive_bitset()) {
-                    let doc_bytes = doc_bytes_res?;
-                    store_writer.store_bytes(&doc_bytes)?;
-                }
-            } else {
-                store_writer.stack(store_reader)?;
-            }
-        }
-        Ok(())
-    }
-
     /// Writes the merged segment by pushing information
     /// to the `SegmentSerializer`.
     ///
@@ -542,8 +507,6 @@ impl IndexMerger {
             &doc_id_mapping,
         )?;
 
-        debug!("write-storagefields");
-        self.write_storable_fields(serializer.get_store_writer())?;
         debug!("write-fastfields");
         self.write_fast_fields(serializer.get_fast_field_write(), doc_id_mapping)?;
 
@@ -570,7 +533,7 @@ mod tests {
     use crate::query::{AllQuery, BooleanQuery, EnableScoring, Scorer, TermQuery};
     use crate::schema::{
         Facet, FacetOptions, IndexRecordOption, NumericOptions, TantivyDocument, Term,
-        TextFieldIndexing, Value, INDEXED, TEXT,
+        TextFieldIndexing, INDEXED, TEXT,
     };
     use crate::time::OffsetDateTime;
     use crate::{
@@ -679,35 +642,6 @@ mod tests {
                     )])?,
                     vec![DocAddress::new(0, 0), DocAddress::new(0, 3)]
                 );
-            }
-            {
-                let doc = searcher.doc::<TantivyDocument>(DocAddress::new(0, 0))?;
-                assert_eq!(
-                    doc.get_first(text_field).unwrap().as_value().as_str(),
-                    Some("af b")
-                );
-            }
-            {
-                let doc = searcher.doc::<TantivyDocument>(DocAddress::new(0, 1))?;
-                assert_eq!(
-                    doc.get_first(text_field).unwrap().as_value().as_str(),
-                    Some("a b c")
-                );
-            }
-            {
-                let doc = searcher.doc::<TantivyDocument>(DocAddress::new(0, 2))?;
-                assert_eq!(
-                    doc.get_first(text_field).unwrap().as_value().as_str(),
-                    Some("a b c d")
-                );
-            }
-            {
-                let doc = searcher.doc::<TantivyDocument>(DocAddress::new(0, 3))?;
-                assert_eq!(doc.get_first(text_field).unwrap().as_str(), Some("af b"));
-            }
-            {
-                let doc = searcher.doc::<TantivyDocument>(DocAddress::new(0, 4))?;
-                assert_eq!(doc.get_first(text_field).unwrap().as_str(), Some("a b c g"));
             }
 
             {

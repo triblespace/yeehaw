@@ -21,7 +21,7 @@ use crate::TantivyError;
 /// # Example
 ///
 /// ```rust
-/// use tantivy::tokenizer::*;
+/// use yeehaw::tokenizer::*;
 ///
 /// let mut tokenizer = RegexTokenizer::new(r"'(?:\w*)'").unwrap();
 /// let mut stream = tokenizer.token_stream("'aaa' bbb 'ccc' 'ddd'");

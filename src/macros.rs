@@ -23,8 +23,8 @@
 /// # Example
 ///
 /// ```rust
-/// use tantivy::schema::{Schema, TEXT, FAST};
-/// use tantivy::doc;
+/// use yeehaw::schema::{Schema, TEXT, FAST};
+/// use yeehaw::doc;
 ///
 /// //...
 ///

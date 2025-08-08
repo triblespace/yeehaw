@@ -5,7 +5,7 @@
 //! each of your fields :
 //!
 //! ```rust
-//! use tantivy::schema::*;
+//! use yeehaw::schema::*;
 //!
 //! let mut schema_builder = Schema::builder();
 //!
@@ -64,7 +64,7 @@
 //! For instance, the `en_stem` is defined as follows.
 //!
 //! ```rust
-//! use tantivy::tokenizer::*;
+//! use yeehaw::tokenizer::*;
 //!
 //! let en_stem = TextAnalyzer::builder(SimpleTokenizer::default())
 //!     .filter(RemoveLongFilter::limit(40))
@@ -77,9 +77,9 @@
 //! register it with a name in your index's [`TokenizerManager`].
 //!
 //! ```rust
-//! # use tantivy::schema::Schema;
-//! # use tantivy::tokenizer::*;
-//! # use tantivy::Index;
+//! # use yeehaw::schema::Schema;
+//! # use yeehaw::tokenizer::*;
+//! # use yeehaw::Index;
 //! #
 //! let custom_en_tokenizer = SimpleTokenizer::default();
 //! # let schema = Schema::builder().build();
@@ -97,9 +97,9 @@
 //! # Example
 //!
 //! ```rust
-//! use tantivy::schema::{Schema, IndexRecordOption, TextOptions, TextFieldIndexing};
-//! use tantivy::tokenizer::*;
-//! use tantivy::Index;
+//! use yeehaw::schema::{Schema, IndexRecordOption, TextOptions, TextFieldIndexing};
+//! use yeehaw::tokenizer::*;
+//! use yeehaw::Index;
 //!
 //! let mut schema_builder = Schema::builder();
 //! let text_field_indexing = TextFieldIndexing::default()

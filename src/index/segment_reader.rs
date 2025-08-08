@@ -14,7 +14,6 @@ use crate::index::{InvertedIndexReader, Segment, SegmentComponent, SegmentId};
 use crate::json_utils::json_path_sep_to_dot;
 use crate::schema::{Field, IndexRecordOption, Schema, Type};
 use crate::space_usage::SegmentSpaceUsage;
-use crate::store::StoreReader;
 use crate::termdict::TermDictionary;
 use crate::{DocId, Opstamp};
 
@@ -22,7 +21,6 @@ use crate::{DocId, Opstamp};
 ///
 /// - term dictionary
 /// - postings
-/// - store
 /// - fast field readers
 /// - field norm reader
 ///
@@ -44,7 +42,6 @@ pub struct SegmentReader {
     fast_fields_readers: FastFieldReaders,
     fieldnorm_readers: FieldNormReaders,
 
-    store_file: FileSlice,
     alive_bitset_opt: Option<AliveBitSet>,
     schema: Schema,
 }
@@ -131,14 +128,6 @@ impl SegmentReader {
         &self.fieldnorm_readers
     }
 
-    /// Accessor to the segment's [`StoreReader`](crate::store::StoreReader).
-    ///
-    /// `cache_num_blocks` sets the number of decompressed blocks to be cached in an LRU.
-    /// The size of blocks is configurable, this should be reflexted in the
-    pub fn get_store_reader(&self, cache_num_blocks: usize) -> io::Result<StoreReader> {
-        StoreReader::open(self.store_file.clone(), cache_num_blocks)
-    }
-
     /// Open a new segment for reading.
     pub fn open(segment: &Segment) -> crate::Result<SegmentReader> {
         Self::open_with_custom_alive_set(segment, None)
@@ -151,8 +140,6 @@ impl SegmentReader {
     ) -> crate::Result<SegmentReader> {
         let termdict_file = segment.open_read(SegmentComponent::Terms)?;
         let termdict_composite = CompositeFile::open(&termdict_file)?;
-
-        let store_file = segment.open_read(SegmentComponent::Store)?;
 
         crate::fail_point!("SegmentReader::open#middle");
 
@@ -200,7 +187,6 @@ impl SegmentReader {
             fieldnorm_readers,
             segment_id: segment.id(),
             delete_opstamp: segment.meta().delete_opstamp(),
-            store_file,
             alive_bitset_opt,
             positions_composite,
             schema,
@@ -424,7 +410,6 @@ impl SegmentReader {
             self.positions_composite.space_usage(),
             self.fast_fields_readers.space_usage(self.schema())?,
             self.fieldnorm_readers.space_usage(),
-            self.get_store_reader(0)?.space_usage(),
             self.alive_bitset_opt
                 .as_ref()
                 .map(AliveBitSet::space_usage)

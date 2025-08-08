@@ -22,15 +22,12 @@ fn main() -> yeehaw::Result<()> {
     let mut schema_builder = Schema::builder();
 
     // This configures your custom options for how yeehaw will
-    // store and process your content in the index; The key
     // to note is that we are setting the tokenizer to `stoppy`
     // which will be defined and registered below.
     let text_field_indexing = TextFieldIndexing::default()
         .set_tokenizer("stoppy")
         .set_index_option(IndexRecordOption::WithFreqsAndPositions);
-    let text_options = TextOptions::default()
-        .set_indexing_options(text_field_indexing)
-        .set_stored();
+    let text_options = TextOptions::default().set_indexing_options(text_field_indexing);
 
     // Our first field is title.
     schema_builder.add_text_field("title", text_options);
@@ -39,9 +36,7 @@ fn main() -> yeehaw::Result<()> {
     let text_field_indexing = TextFieldIndexing::default()
         .set_tokenizer("stoppy")
         .set_index_option(IndexRecordOption::WithFreqsAndPositions);
-    let text_options = TextOptions::default()
-        .set_indexing_options(text_field_indexing)
-        .set_stored();
+    let text_options = TextOptions::default().set_indexing_options(text_field_indexing);
     schema_builder.add_text_field("body", text_options);
 
     let schema = schema_builder.build();
@@ -105,9 +100,8 @@ fn main() -> yeehaw::Result<()> {
     let top_docs = searcher.search(&query, &TopDocs::with_limit(10))?;
 
     for (score, doc_address) in top_docs {
-        let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
         println!("\n==\nDocument score {score}:");
-        println!("{}", retrieved_doc.to_json(&schema));
+        println!("{doc_address:?}");
     }
 
     Ok(())

@@ -18,10 +18,10 @@
 //! ```rust
 //! # use std::path::Path;
 //! # use tempfile::TempDir;
-//! # use tantivy::collector::TopDocs;
-//! # use tantivy::query::QueryParser;
-//! # use tantivy::schema::*;
-//! # use tantivy::{doc, DocAddress, Index, IndexWriter, Score};
+//! # use yeehaw::collector::TopDocs;
+//! # use yeehaw::query::QueryParser;
+//! # use yeehaw::schema::*;
+//! # use yeehaw::{doc, DocAddress, Index, IndexWriter, Score};
 //! #
 //! # fn main() {
 //! #     // Let's create a temporary directory for the
@@ -32,16 +32,12 @@
 //! #     }
 //! # }
 //! #
-//! # fn run_example(index_path: &Path) -> tantivy::Result<()> {
+//! # fn run_example(index_path: &Path) -> yeehaw::Result<()> {
 //! // First we need to define a schema ...
 //!
 //! // `TEXT` means the field should be tokenized and indexed,
 //! // along with its term frequency and term positions.
 //! //
-//! // `STORED` means that the field will also be saved
-//! // in a compressed, row-oriented key-value store.
-//! // This store is useful to reconstruct the
-//! // documents that were selected during the search phase.
 //! let mut schema_builder = Schema::builder();
 //! let title = schema_builder.add_text_field("title", TEXT | STORED);
 //! let body = schema_builder.add_text_field("body", TEXT);
@@ -88,9 +84,8 @@
 //!     searcher.search(&query, &TopDocs::with_limit(10))?;
 //!
 //! for (_score, doc_address) in top_docs {
-//!     // Retrieve the actual content of documents given its `doc_address`.
-//!     let retrieved_doc = searcher.doc::<TantivyDocument>(doc_address)?;
-//!     println!("{}", retrieved_doc.to_json(&schema));
+//!     // Each `doc_address` points to a matching document in the index.
+//!     println!("{:?}", doc_address);
 //! }
 //!
 //! # Ok(())
@@ -196,7 +191,6 @@ pub mod postings;
 pub mod query;
 pub mod schema;
 pub mod space_usage;
-pub mod store;
 pub mod termdict;
 
 mod docset;
@@ -267,13 +261,13 @@ impl fmt::Display for Version {
 static VERSION_STRING: Lazy<String> = Lazy::new(|| VERSION.to_string());
 
 /// Expose the current version of tantivy as found in Cargo.toml during compilation.
-/// eg. "0.11.0" as well as the compression scheme used in the docstore.
+/// eg. "0.11.0".
 pub fn version() -> &'static Version {
     &VERSION
 }
 
 /// Exposes the complete version of tantivy as found in Cargo.toml during compilation as a string.
-/// eg. "tantivy v0.11.0, index_format v1, store_compression: lz4".
+/// eg. "tantivy v0.11.0, index_format v1".
 pub fn version_string() -> &'static str {
     VERSION_STRING.as_str()
 }

@@ -20,7 +20,7 @@ fn main() -> yeehaw::Result<()> {
 
     // For this example, we need to make sure to index positions for our title
     // field. `TEXT` precisely does this.
-    let title = schema_builder.add_text_field("title", TEXT | STORED);
+    let title = schema_builder.add_text_field("title", TEXT);
     let schema = schema_builder.build();
 
     let index = Index::create_in_ram(schema);

@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::{fmt, io};
 
@@ -8,27 +7,18 @@ use crate::index::{SegmentId, SegmentReader};
 use crate::query::{Bm25StatisticsProvider, EnableScoring, Query};
 use crate::schema::{Schema, Term};
 use crate::space_usage::SearcherSpaceUsage;
-use crate::{Index, Opstamp, TrackedObject};
+use crate::{Index, TrackedObject};
 
 /// Identifies the searcher generation accessed by a [`Searcher`].
 ///
-/// While this might seem redundant, a [`SearcherGeneration`] contains
-/// both a `generation_id` AND a list of `(SegmentId, DeleteOpstamp)`.
+/// Identifies the searcher generation accessed by a [`Searcher`].
 ///
-/// This is on purpose. This object is used by the [`Warmer`](crate::reader::Warmer) API.
-/// Having both information makes it possible to identify which
-/// artifact should be refreshed or garbage collected.
-///
-/// Depending on the use case, `Warmer`'s implementers can decide to
-/// produce artifacts per:
-/// - `generation_id` (e.g. some searcher level aggregates)
-/// - `(segment_id, delete_opstamp)` (e.g. segment level aggregates)
-/// - `segment_id` (e.g. for immutable document level information)
-/// - `(generation_id, segment_id)` (e.g. for consistent dynamic column)
-/// - ...
+/// This object is used by the [`Warmer`](crate::reader::Warmer) API to tie
+/// external resources to the set of segments currently loaded by the
+/// searcher.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SearcherGeneration {
-    segments: BTreeMap<SegmentId, Option<Opstamp>>,
+    segments: Vec<SegmentId>,
     generation_id: u64,
 }
 
@@ -37,13 +27,9 @@ impl SearcherGeneration {
         segment_readers: &[SegmentReader],
         generation_id: u64,
     ) -> Self {
-        let mut segment_id_to_del_opstamp = BTreeMap::new();
-        for segment_reader in segment_readers {
-            segment_id_to_del_opstamp
-                .insert(segment_reader.segment_id(), segment_reader.delete_opstamp());
-        }
+        let segments = segment_readers.iter().map(|s| s.segment_id()).collect();
         Self {
-            segments: segment_id_to_del_opstamp,
+            segments,
             generation_id,
         }
     }
@@ -53,8 +39,8 @@ impl SearcherGeneration {
         self.generation_id
     }
 
-    /// Return a `(SegmentId -> DeleteOpstamp)` mapping.
-    pub fn segments(&self) -> &BTreeMap<SegmentId, Option<Opstamp>> {
+    /// Return the list of segment ids referenced by this generation.
+    pub fn segments(&self) -> &[SegmentId] {
         &self.segments
     }
 }
@@ -222,11 +208,9 @@ impl SearcherInner {
         segment_readers: Vec<SegmentReader>,
         generation: TrackedObject<SearcherGeneration>,
     ) -> io::Result<SearcherInner> {
+        let expected: Vec<_> = segment_readers.iter().map(|r| r.segment_id()).collect();
         assert_eq!(
-            &segment_readers
-                .iter()
-                .map(|reader| (reader.segment_id(), reader.delete_opstamp()))
-                .collect::<BTreeMap<_, _>>(),
+            &expected,
             generation.segments(),
             "Set of segments referenced by this Searcher and its SearcherGeneration must match"
         );

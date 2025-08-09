@@ -92,10 +92,9 @@ where
 mod tests {
     use super::RequiredOptionalScorer;
     use crate::docset::{DocSet, TERMINATED};
-    use crate::postings::tests::test_skip_against_unoptimized;
     use crate::query::score_combiner::{DoNothingCombiner, SumCombiner};
     use crate::query::{ConstScorer, Scorer, VecDocSet};
-    use crate::tests::sample_with_seed;
+    use crate::tests::{sample_with_seed, test_skip_against_unoptimized};
 
     #[test]
     fn test_reqopt_scorer_empty() {

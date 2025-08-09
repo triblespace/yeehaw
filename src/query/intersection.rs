@@ -161,8 +161,8 @@ where
 mod tests {
     use super::Intersection;
     use crate::docset::{DocSet, TERMINATED};
-    use crate::postings::tests::test_skip_against_unoptimized;
     use crate::query::VecDocSet;
+    use crate::tests::test_skip_against_unoptimized;
 
     #[test]
     fn test_intersection() {

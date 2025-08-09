@@ -114,7 +114,6 @@ impl SegmentSpaceUsage {
             FastFields => PerField(self.fast_fields().clone()),
             FieldNorms => PerField(self.fieldnorms().clone()),
             Terms => PerField(self.termdict().clone()),
-            Delete => Basic(self.deletes()),
         }
     }
 
@@ -246,7 +245,6 @@ mod test {
     use crate::index::Index;
     use crate::schema::{Field, Schema, FAST, INDEXED, TEXT};
     use crate::space_usage::PerFieldSpaceUsage;
-    use crate::{IndexWriter, Term};
 
     #[test]
     fn test_empty() {
@@ -346,50 +344,6 @@ mod test {
         expect_single_field(segment.positions(), &name, 1, 512);
         assert_eq!(segment.fast_fields().total(), 0);
         expect_single_field(segment.fieldnorms(), &name, 1, 512);
-        Ok(())
-    }
-
-    #[test]
-    fn test_deletes() -> crate::Result<()> {
-        let mut schema_builder = Schema::builder();
-        let name = schema_builder.add_u64_field("name", INDEXED);
-        let schema = schema_builder.build();
-        let index = Index::create_in_ram(schema);
-
-        {
-            let mut index_writer: IndexWriter = index.writer_for_tests()?;
-            index_writer.add_document(doc!(name => 1u64))?;
-            index_writer.add_document(doc!(name => 2u64))?;
-            index_writer.add_document(doc!(name => 3u64))?;
-            index_writer.add_document(doc!(name => 4u64))?;
-            index_writer.commit()?;
-        }
-
-        {
-            let mut index_writer2: IndexWriter = index.writer(50_000_000)?;
-            index_writer2.delete_term(Term::from_field_u64(name, 2u64));
-            index_writer2.delete_term(Term::from_field_u64(name, 3u64));
-            // ok, now we should have a deleted doc
-            index_writer2.commit()?;
-        }
-
-        let reader = index.reader()?;
-        let searcher = reader.searcher();
-        let searcher_space_usage = searcher.space_usage()?;
-        assert!(searcher_space_usage.total() > 0);
-        assert_eq!(1, searcher_space_usage.segments().len());
-
-        let segment_space_usage = &searcher_space_usage.segments()[0];
-        assert!(segment_space_usage.total() > 0);
-
-        assert_eq!(2, segment_space_usage.num_docs());
-
-        expect_single_field(segment_space_usage.termdict(), &name, 1, 512);
-        expect_single_field(segment_space_usage.postings(), &name, 1, 512);
-        assert_eq!(segment_space_usage.positions().total(), 0u64);
-        assert_eq!(segment_space_usage.fast_fields().total(), 0u64);
-        expect_single_field(segment_space_usage.fieldnorms(), &name, 1, 512);
-        assert!(segment_space_usage.deletes() > 0);
         Ok(())
     }
 }

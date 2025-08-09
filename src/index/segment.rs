@@ -6,7 +6,6 @@ use crate::directory::error::{OpenReadError, OpenWriteError};
 use crate::directory::{Directory, FileSlice, WritePtr};
 use crate::index::{Index, SegmentId, SegmentMeta};
 use crate::schema::Schema;
-use crate::Opstamp;
 
 /// A segment is a piece of the index.
 #[derive(Clone)]
@@ -50,15 +49,6 @@ impl Segment {
         Segment {
             index: self.index,
             meta: self.meta.with_max_doc(max_doc),
-        }
-    }
-
-    #[doc(hidden)]
-    #[must_use]
-    pub fn with_delete_meta(self, num_deleted_docs: u32, opstamp: Opstamp) -> Segment {
-        Segment {
-            index: self.index,
-            meta: self.meta.with_delete_meta(num_deleted_docs, opstamp),
         }
     }
 

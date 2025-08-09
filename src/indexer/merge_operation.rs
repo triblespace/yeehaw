@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::ops::Deref;
 
 use crate::index::SegmentId;
-use crate::{Inventory, Opstamp, TrackedObject};
+use crate::{Inventory, TrackedObject};
 
 #[derive(Default)]
 pub(crate) struct MergeOperationInventory(Inventory<InnerMergeOperation>);
@@ -45,20 +45,16 @@ pub struct MergeOperation {
 }
 
 pub(crate) struct InnerMergeOperation {
-    target_opstamp: Opstamp,
     segment_ids: Vec<SegmentId>,
 }
 
 impl MergeOperation {
     pub(crate) fn new(
         inventory: &MergeOperationInventory,
-        target_opstamp: Opstamp,
+        _target_opstamp: u64,
         segment_ids: Vec<SegmentId>,
     ) -> MergeOperation {
-        let inner_merge_operation = InnerMergeOperation {
-            target_opstamp,
-            segment_ids,
-        };
+        let inner_merge_operation = InnerMergeOperation { segment_ids };
         MergeOperation {
             inner: inventory.track(inner_merge_operation),
         }
@@ -66,8 +62,10 @@ impl MergeOperation {
 
     /// Returns the opstamp up to which we want to consume the delete queue and reflect their
     /// deletes.
-    pub fn target_opstamp(&self) -> Opstamp {
-        self.inner.target_opstamp
+    ///
+    /// TODO integrate commit handle.
+    pub fn target_opstamp(&self) -> u64 {
+        u64::MAX
     }
 
     /// Returns the list of segment to be merged.

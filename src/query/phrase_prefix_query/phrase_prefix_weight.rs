@@ -80,13 +80,7 @@ impl PhrasePrefixWeight {
         while stream.advance() && (suffixes.len() as u32) < self.max_expansions {
             new_term.clear_with_type(new_term.typ());
             new_term.append_bytes(stream.key());
-            if reader.has_deletes() {
-                if let Some(postings) =
-                    inv_index.read_postings(&new_term, IndexRecordOption::WithFreqsAndPositions)?
-                {
-                    suffixes.push(postings);
-                }
-            } else if let Some(postings) =
+            if let Some(postings) =
                 inv_index.read_postings(&new_term, IndexRecordOption::WithFreqsAndPositions)?
             {
                 suffixes.push(postings);

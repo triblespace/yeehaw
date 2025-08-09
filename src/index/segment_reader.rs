@@ -15,7 +15,7 @@ use crate::json_utils::json_path_sep_to_dot;
 use crate::schema::{Field, IndexRecordOption, Schema, Type};
 use crate::space_usage::SegmentSpaceUsage;
 use crate::termdict::TermDictionary;
-use crate::{DocId, Opstamp};
+use crate::DocId;
 
 /// Entry point to access all of the datastructures of the `Segment`
 ///
@@ -31,10 +31,8 @@ pub struct SegmentReader {
     inv_idx_reader_cache: Arc<RwLock<HashMap<Field, Arc<InvertedIndexReader>>>>,
 
     segment_id: SegmentId,
-    delete_opstamp: Option<Opstamp>,
 
     max_doc: DocId,
-    num_docs: DocId,
 
     termdict_composite: CompositeFile,
     postings_composite: CompositeFile,
@@ -54,25 +52,16 @@ impl SegmentReader {
     }
 
     /// Returns the number of alive documents.
-    /// Deleted documents are not counted.
     pub fn num_docs(&self) -> DocId {
-        self.num_docs
+        self.alive_bitset_opt
+            .as_ref()
+            .map(|alive_bitset| alive_bitset.num_alive_docs() as u32)
+            .unwrap_or(self.max_doc)
     }
 
     /// Returns the schema of the index this segment belongs to.
     pub fn schema(&self) -> &Schema {
         &self.schema
-    }
-
-    /// Return the number of documents that have been
-    /// deleted in the segment.
-    pub fn num_deleted_docs(&self) -> DocId {
-        self.max_doc - self.num_docs
-    }
-
-    /// Returns true if some of the documents of the segment have been deleted.
-    pub fn has_deletes(&self) -> bool {
-        self.num_deleted_docs() > 0
     }
 
     /// Accessor to a segment's fast field reader given a field.
@@ -133,7 +122,6 @@ impl SegmentReader {
         Self::open_with_custom_alive_set(segment, None)
     }
 
-    /// Open a new segment for reading.
     pub fn open_with_custom_alive_set(
         segment: &Segment,
         custom_bitset: Option<AliveBitSet>,
@@ -161,32 +149,17 @@ impl SegmentReader {
         let fieldnorm_data = segment.open_read(SegmentComponent::FieldNorms)?;
         let fieldnorm_readers = FieldNormReaders::open(fieldnorm_data)?;
 
-        let original_bitset = if segment.meta().has_deletes() {
-            let alive_doc_file_slice = segment.open_read(SegmentComponent::Delete)?;
-            let alive_doc_data = alive_doc_file_slice.read_bytes()?;
-            Some(AliveBitSet::open(alive_doc_data))
-        } else {
-            None
-        };
-
-        let alive_bitset_opt = intersect_alive_bitset(original_bitset, custom_bitset);
-
+        let alive_bitset_opt = custom_bitset;
         let max_doc = segment.meta().max_doc();
-        let num_docs = alive_bitset_opt
-            .as_ref()
-            .map(|alive_bitset| alive_bitset.num_alive_docs() as u32)
-            .unwrap_or(max_doc);
 
         Ok(SegmentReader {
             inv_idx_reader_cache: Default::default(),
-            num_docs,
             max_doc,
             termdict_composite,
             postings_composite,
             fast_fields_readers,
             fieldnorm_readers,
             segment_id: segment.id(),
-            delete_opstamp: segment.meta().delete_opstamp(),
             alive_bitset_opt,
             positions_composite,
             schema,
@@ -375,10 +348,6 @@ impl SegmentReader {
     }
 
     /// Returns the delete opstamp
-    pub fn delete_opstamp(&self) -> Option<Opstamp> {
-        self.delete_opstamp
-    }
-
     /// Returns the bitset representing the alive `DocId`s.
     pub fn alive_bitset(&self) -> Option<&AliveBitSet> {
         self.alive_bitset_opt.as_ref()
@@ -499,184 +468,4 @@ impl fmt::Debug for SegmentReader {
 }
 
 #[cfg(test)]
-mod test {
-    use super::*;
-    use crate::index::Index;
-    use crate::schema::{SchemaBuilder, Term, STORED, TEXT};
-    use crate::IndexWriter;
-
-    #[test]
-    fn test_merge_field_meta_data_same() {
-        let schema = SchemaBuilder::new().build();
-        let field_metadata1 = FieldMetadata {
-            field_name: "a".to_string(),
-            typ: crate::schema::Type::Str,
-            indexed: true,
-            stored: false,
-            fast: true,
-        };
-        let field_metadata2 = FieldMetadata {
-            field_name: "a".to_string(),
-            typ: crate::schema::Type::Str,
-            indexed: true,
-            stored: false,
-            fast: true,
-        };
-        let res = merge_field_meta_data(
-            vec![vec![field_metadata1.clone()], vec![field_metadata2]],
-            &schema,
-        );
-        assert_eq!(res, vec![field_metadata1]);
-    }
-    #[test]
-    fn test_merge_field_meta_data_different() {
-        let schema = SchemaBuilder::new().build();
-        let field_metadata1 = FieldMetadata {
-            field_name: "a".to_string(),
-            typ: crate::schema::Type::Str,
-            indexed: false,
-            stored: false,
-            fast: true,
-        };
-        let field_metadata2 = FieldMetadata {
-            field_name: "b".to_string(),
-            typ: crate::schema::Type::Str,
-            indexed: false,
-            stored: false,
-            fast: true,
-        };
-        let field_metadata3 = FieldMetadata {
-            field_name: "a".to_string(),
-            typ: crate::schema::Type::Str,
-            indexed: true,
-            stored: false,
-            fast: false,
-        };
-        let res = merge_field_meta_data(
-            vec![
-                vec![field_metadata1.clone(), field_metadata2.clone()],
-                vec![field_metadata3],
-            ],
-            &schema,
-        );
-        let field_metadata_expected1 = FieldMetadata {
-            field_name: "a".to_string(),
-            typ: crate::schema::Type::Str,
-            indexed: true,
-            stored: false,
-            fast: true,
-        };
-        assert_eq!(res, vec![field_metadata_expected1, field_metadata2.clone()]);
-    }
-    #[test]
-    fn test_merge_field_meta_data_merge() {
-        use pretty_assertions::assert_eq;
-        let get_meta_data = |name: &str, typ: Type| FieldMetadata {
-            field_name: name.to_string(),
-            typ,
-            indexed: false,
-            stored: false,
-            fast: true,
-        };
-        let schema = SchemaBuilder::new().build();
-        let mut metas = vec![get_meta_data("d", Type::Str), get_meta_data("e", Type::U64)];
-        metas.sort();
-        let res = merge_field_meta_data(vec![vec![get_meta_data("e", Type::Str)], metas], &schema);
-        assert_eq!(
-            res,
-            vec![
-                get_meta_data("d", Type::Str),
-                get_meta_data("e", Type::Str),
-                get_meta_data("e", Type::U64),
-            ]
-        );
-    }
-    #[test]
-    fn test_merge_field_meta_data_bitxor() {
-        let field_metadata1 = FieldMetadata {
-            field_name: "a".to_string(),
-            typ: crate::schema::Type::Str,
-            indexed: false,
-            stored: false,
-            fast: true,
-        };
-        let field_metadata2 = FieldMetadata {
-            field_name: "a".to_string(),
-            typ: crate::schema::Type::Str,
-            indexed: true,
-            stored: false,
-            fast: false,
-        };
-        let field_metadata_expected = FieldMetadata {
-            field_name: "a".to_string(),
-            typ: crate::schema::Type::Str,
-            indexed: true,
-            stored: false,
-            fast: true,
-        };
-        let mut res1 = field_metadata1.clone();
-        res1 |= field_metadata2.clone();
-        let mut res2 = field_metadata2.clone();
-        res2 |= field_metadata1;
-        assert_eq!(res1, field_metadata_expected);
-        assert_eq!(res2, field_metadata_expected);
-    }
-
-    #[test]
-    fn test_num_alive() -> crate::Result<()> {
-        let mut schema_builder = Schema::builder();
-        schema_builder.add_text_field("name", TEXT | STORED);
-        let schema = schema_builder.build();
-        let index = Index::create_in_ram(schema.clone());
-        let name = schema.get_field("name").unwrap();
-
-        {
-            let mut index_writer: IndexWriter = index.writer_for_tests()?;
-            index_writer.add_document(doc!(name => "tantivy"))?;
-            index_writer.add_document(doc!(name => "horse"))?;
-            index_writer.add_document(doc!(name => "jockey"))?;
-            index_writer.add_document(doc!(name => "cap"))?;
-            // we should now have one segment with two docs
-            index_writer.delete_term(Term::from_field_text(name, "horse"));
-            index_writer.delete_term(Term::from_field_text(name, "cap"));
-
-            // ok, now we should have a deleted doc
-            index_writer.commit()?;
-        }
-        let searcher = index.reader()?.searcher();
-        assert_eq!(2, searcher.segment_reader(0).num_docs());
-        assert_eq!(4, searcher.segment_reader(0).max_doc());
-        Ok(())
-    }
-    #[test]
-    fn test_alive_docs_iterator() -> crate::Result<()> {
-        let mut schema_builder = Schema::builder();
-        schema_builder.add_text_field("name", TEXT | STORED);
-        let schema = schema_builder.build();
-        let index = Index::create_in_ram(schema.clone());
-        let name = schema.get_field("name").unwrap();
-
-        {
-            let mut index_writer: IndexWriter = index.writer_for_tests()?;
-            index_writer.add_document(doc!(name => "tantivy"))?;
-            index_writer.add_document(doc!(name => "horse"))?;
-            index_writer.add_document(doc!(name => "jockey"))?;
-            index_writer.add_document(doc!(name => "cap"))?;
-            // we should now have one segment with two docs
-            index_writer.commit()?;
-        }
-
-        {
-            let mut index_writer2: IndexWriter = index.writer(50_000_000)?;
-            index_writer2.delete_term(Term::from_field_text(name, "horse"));
-            index_writer2.delete_term(Term::from_field_text(name, "cap"));
-
-            // ok, now we should have a deleted doc
-            index_writer2.commit()?;
-        }
-        let searcher = index.reader()?.searcher();
-        let docs: Vec<DocId> = searcher.segment_reader(0).doc_ids_alive().collect();
-        assert_eq!(vec![0u32, 2u32], docs);
-        Ok(())
-    }
-}
+mod tests {}

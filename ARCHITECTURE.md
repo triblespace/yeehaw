@@ -28,11 +28,11 @@ Roughly speaking the design is following these guiding principles:
 - Indexing should be O(1) in memory. (In practice it is just sublinear)
 - Search should be as fast as possible
 
-This comes at the cost of the dynamicity of the index: while it is possible to add, and delete documents from our corpus, the tantivy is designed to handle these updates in large batches.
+This comes at the cost of the dynamicity of the index: the indexer is append-only and does not natively support document deletions.
 
 ## [core/](src/core): Index, segments, searchers
 
-Core contains all of the high-level code to make it possible to create an index, add documents, delete documents and commit.
+Core contains all of the high-level code to make it possible to create an index, add documents, and commit.
 
 This is both the most high-level part of tantivy, the least performance-sensitive one, the seemingly most mundane code... And paradoxically the most complicated part.
 
@@ -56,12 +56,10 @@ For a better idea of how indexing works, you may read the [following blog post](
 
 ### Deletes
 
-Deletes happen by deleting a "term". Tantivy does not offer any notion of primary id, so it is up to the user to use a field in their schema as if it was a primary id, and delete the associated term if they want to delete only one specific document.
+Document removal is handled externally by triblespace. The indexer itself only supports adding documents and committing new segments.
 
 On commit, tantivy will find all of the segments with documents matching this existing term and remove from [alive bitset file](src/fastfield/alive_bitset.rs) that represents the bitset of the alive document ids.
-Like all segment files, this file is immutable. Because it is possible to have more than one alive bitset file at a given instant, the alive bitset filename has the format ```segment_id . commit_opstamp . del```.
-
-An opstamp is simply an incremental id that identifies any operation applied to the index. For instance, performing a commit or adding a document.
+Like all segment files, this file is immutable. The alive bitset filename has the format ```segment_id . del```.
 
 ### DocId
 

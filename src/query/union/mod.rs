@@ -15,11 +15,11 @@ mod tests {
 
     use super::{SimpleUnion, *};
     use crate::docset::{DocSet, TERMINATED};
-    use crate::postings::tests::test_skip_against_unoptimized;
     use crate::query::score_combiner::DoNothingCombiner;
     use crate::query::union::bitset_union::BitSetPostingUnion;
     use crate::query::{BitSetDocSet, ConstScorer, VecDocSet};
-    use crate::{tests, DocId};
+    use crate::tests::{self, test_skip_against_unoptimized};
+    use crate::DocId;
 
     fn vec_doc_set_from_docs_list(
         docs_list: &[Vec<DocId>],

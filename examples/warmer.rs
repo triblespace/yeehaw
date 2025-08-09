@@ -7,8 +7,7 @@ use yeehaw::index::SegmentId;
 use yeehaw::query::QueryParser;
 use yeehaw::schema::{Schema, FAST, TEXT};
 use yeehaw::{
-    doc, DocAddress, DocId, Index, IndexWriter, Opstamp, Searcher, SearcherGeneration,
-    SegmentReader, Warmer,
+    doc, DocAddress, DocId, Index, IndexWriter, Searcher, SearcherGeneration, SegmentReader, Warmer,
 };
 
 // This example shows how warmers can be used to
@@ -26,7 +25,7 @@ pub trait PriceFetcher: Send + Sync + 'static {
     fn fetch_prices(&self, product_ids: &[ProductId]) -> Vec<Price>;
 }
 
-type SegmentKey = (SegmentId, Option<Opstamp>);
+type SegmentKey = SegmentId;
 
 struct DynamicPriceColumn {
     field: String,
@@ -44,8 +43,11 @@ impl DynamicPriceColumn {
     }
 
     pub fn price_for_segment(&self, segment_reader: &SegmentReader) -> Option<Arc<Vec<Price>>> {
-        let segment_key = (segment_reader.segment_id(), segment_reader.delete_opstamp());
-        self.price_cache.read().unwrap().get(&segment_key).cloned()
+        self.price_cache
+            .read()
+            .unwrap()
+            .get(&segment_reader.segment_id())
+            .cloned()
     }
 }
 impl Warmer for DynamicPriceColumn {
@@ -72,11 +74,10 @@ impl Warmer for DynamicPriceColumn {
                 })
                 .collect();
 
-            let key = (segment.segment_id(), segment.delete_opstamp());
             self.price_cache
                 .write()
                 .unwrap()
-                .insert(key, Arc::new(prices));
+                .insert(segment.segment_id(), Arc::new(prices));
         }
 
         Ok(())
@@ -85,8 +86,7 @@ impl Warmer for DynamicPriceColumn {
     fn garbage_collect(&self, live_generations: &[&SearcherGeneration]) {
         let live_keys: HashSet<SegmentKey> = live_generations
             .iter()
-            .flat_map(|gen| gen.segments())
-            .map(|(&segment_id, &opstamp)| (segment_id, opstamp))
+            .flat_map(|gen| gen.segments().iter().copied())
             .collect();
 
         self.price_cache

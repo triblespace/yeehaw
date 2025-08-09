@@ -93,9 +93,8 @@ where
 mod tests {
 
     use super::*;
-    use crate::postings::tests::test_skip_against_unoptimized;
     use crate::query::VecDocSet;
-    use crate::tests::sample_with_seed;
+    use crate::tests::{sample_with_seed, test_skip_against_unoptimized};
 
     #[test]
     fn test_exclude() {

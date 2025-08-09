@@ -10,11 +10,11 @@ pub struct PreparedCommit<'a, D: Document = TantivyDocument> {
 }
 
 impl<'a, D: Document> PreparedCommit<'a, D> {
-    pub(crate) fn new(index_writer: &'a mut IndexWriter<D>, opstamp: Opstamp) -> Self {
+    pub(crate) fn new(index_writer: &'a mut IndexWriter<D>) -> Self {
         Self {
             index_writer,
             payload: None,
-            opstamp,
+            opstamp: 0, // TODO integrate commit handle
         }
     }
 

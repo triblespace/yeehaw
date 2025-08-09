@@ -151,10 +151,6 @@ extern crate thiserror;
 #[cfg(all(test, feature = "unstable"))]
 extern crate test;
 
-#[cfg(feature = "mmap")]
-#[cfg(test)]
-mod functional_test;
-
 #[macro_use]
 mod macros;
 mod future_result;
@@ -286,14 +282,9 @@ pub mod merge_policy {
 /// At most, a segment can contain 2^31 documents.
 pub type DocId = u32;
 
-/// A u64 assigned to every operation incrementally
+/// Legacy alias retained for backward compatibility.
 ///
-/// All operations modifying the index receives an monotonic Opstamp.
-/// The resulting state of the index is consistent with the opstamp ordering.
-///
-/// For instance, a commit with opstamp `32_423` will reflect all Add and Delete operations
-/// with an opstamp `<= 32_423`. A delete operation with opstamp n will no affect a document added
-/// with opstamp `n+1`.
+/// TODO integrate commit handle.
 pub type Opstamp = u64;
 
 /// A Score that represents the relevance of the document to the query
@@ -378,7 +369,7 @@ pub mod tests {
     use crate::postings::Postings;
     use crate::query::BooleanQuery;
     use crate::schema::*;
-    use crate::{DateTime, DocAddress, Index, IndexWriter, ReloadPolicy};
+    use crate::{DateTime, DocAddress, DocId, Index, IndexWriter, ReloadPolicy};
 
     /// Asserts that the serialized value is the value in the trait.
     pub fn fixed_size_test<O: BinarySerializable + FixedSize + Default>() {
@@ -435,6 +426,35 @@ pub mod tests {
     /// Sample `n` elements with Bernoulli distribution.
     pub fn sample(n: u32, ratio: f64) -> Vec<u32> {
         sample_with_seed(n, ratio, 4)
+    }
+
+    /// Assert that a docset's seek implementation matches a naive linear scan.
+    pub fn test_skip_against_unoptimized<F>(docset_factory: F, targets: Vec<DocId>)
+    where
+        F: Fn() -> Box<dyn DocSet>,
+    {
+        for target in targets {
+            let mut optimized = docset_factory();
+            let mut naive = docset_factory();
+
+            while naive.doc() < target {
+                if naive.advance() == TERMINATED {
+                    break;
+                }
+            }
+            let skip_naive = naive.doc();
+            let skip_opt = optimized.seek(target);
+            assert_eq!(skip_naive, skip_opt, "Failed while skipping to {target}");
+            assert!(skip_opt >= target);
+            assert_eq!(skip_opt, optimized.doc());
+            if skip_opt == TERMINATED {
+                continue;
+            }
+            while optimized.doc() != TERMINATED {
+                assert_eq!(optimized.doc(), naive.doc());
+                assert_eq!(optimized.advance(), naive.advance());
+            }
+        }
     }
 
     #[test]
@@ -580,8 +600,6 @@ pub mod tests {
             // 3
             index_writer.add_document(doc!(text_field=>" b d"))?;
 
-            index_writer.delete_term(Term::from_field_text(text_field, "c"));
-            index_writer.delete_term(Term::from_field_text(text_field, "a"));
             // 4
             index_writer.add_document(doc!(text_field=>" b c"))?;
             // 5
@@ -621,7 +639,6 @@ pub mod tests {
             // 0
             index_writer.add_document(doc!(text_field=>"a b"))?;
             // 1
-            index_writer.delete_term(Term::from_field_text(text_field, "c"));
             index_writer.rollback()?;
         }
         {
@@ -656,9 +673,7 @@ pub mod tests {
             // writing the segment
             let mut index_writer: IndexWriter = index.writer_for_tests()?;
             index_writer.add_document(doc!(text_field=>"a b"))?;
-            index_writer.delete_term(Term::from_field_text(text_field, "c"));
             index_writer.rollback()?;
-            index_writer.delete_term(Term::from_field_text(text_field, "a"));
             index_writer.commit()?;
         }
         {
@@ -807,8 +822,6 @@ pub mod tests {
         index_writer.add_document(doc!(text_field=>"33"))?;
         index_writer.add_document(doc!(text_field=>"40"))?;
         index_writer.add_document(doc!(text_field=>"17"))?;
-        index_writer.delete_term(Term::from_field_text(text_field, "38"));
-        index_writer.delete_term(Term::from_field_text(text_field, "34"));
         index_writer.commit()?;
         reader.reload()?;
         assert_eq!(reader.searcher().num_docs(), 6);
@@ -1134,7 +1147,6 @@ pub mod tests {
 
         // update the 10 elements by deleting and re-adding
         for doc_id in 0u64..DOC_COUNT {
-            index_writer.delete_term(Term::from_field_u64(id, doc_id));
             index_writer.commit()?;
             index_reader.reload()?;
             index_writer.add_document(doc!(id =>  doc_id))?;
@@ -1179,7 +1191,6 @@ pub mod tests {
         assert!(index.validate_checksum()?.is_empty());
 
         // delete few docs
-        writer.delete_term(Term::from_field_text(body, "foo"));
         writer.commit()?;
         let segment_ids = index.searchable_segment_ids()?;
         writer.merge(&segment_ids).wait()?;

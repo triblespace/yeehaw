@@ -46,7 +46,6 @@ impl<D: Document> SingleSegmentIndexWriter<D> {
             index_settings: index.settings().clone(),
             segments: vec![segment.meta().clone()],
             schema: index.schema(),
-            opstamp: 0,
             payload: None,
         };
         save_metas(&index_meta, index.directory())?;

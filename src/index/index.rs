@@ -65,7 +65,6 @@ fn save_new_metas(
             index_settings,
             segments: Vec::new(),
             schema,
-            opstamp: 0u64,
             payload: None,
         },
         directory,

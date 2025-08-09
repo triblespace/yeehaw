@@ -7,13 +7,7 @@ use serde::{Deserialize, Serialize};
 use super::SegmentComponent;
 use crate::index::SegmentId;
 use crate::schema::Schema;
-use crate::{Inventory, Opstamp, TrackedObject};
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct DeleteMeta {
-    num_deleted_docs: u32,
-    opstamp: Opstamp,
-}
+use crate::{Inventory, TrackedObject};
 
 #[derive(Clone, Default)]
 pub(crate) struct SegmentMetaInventory {
@@ -34,7 +28,6 @@ impl SegmentMetaInventory {
         let inner = InnerSegmentMeta {
             segment_id,
             max_doc,
-            deletes: None,
         };
         SegmentMeta::from(self.inventory.track(inner))
     }
@@ -81,15 +74,6 @@ impl SegmentMeta {
         self.tracked.segment_id
     }
 
-    /// Returns the number of deleted documents.
-    pub fn num_deleted_docs(&self) -> u32 {
-        self.tracked
-            .deletes
-            .as_ref()
-            .map(|delete_meta| delete_meta.num_deleted_docs)
-            .unwrap_or(0u32)
-    }
-
     /// Returns the list of files that
     /// are required for the segment meta.
     /// Note: Some of the returned files may not exist depending on the state of the segment.
@@ -115,7 +99,6 @@ impl SegmentMeta {
             SegmentComponent::Terms => ".term".to_string(),
             SegmentComponent::FastFields => ".fast".to_string(),
             SegmentComponent::FieldNorms => ".fieldnorm".to_string(),
-            SegmentComponent::Delete => format!(".{}.del", self.delete_opstamp().unwrap_or(0)),
         });
         PathBuf::from(path)
     }
@@ -131,51 +114,15 @@ impl SegmentMeta {
 
     /// Return the number of documents in the segment.
     pub fn num_docs(&self) -> u32 {
-        self.max_doc() - self.num_deleted_docs()
-    }
-
-    /// Returns the `Opstamp` of the last delete operation
-    /// taken in account in this segment.
-    pub fn delete_opstamp(&self) -> Option<Opstamp> {
-        self.tracked
-            .deletes
-            .as_ref()
-            .map(|delete_meta| delete_meta.opstamp)
-    }
-
-    /// Returns true iff the segment meta contains
-    /// delete information.
-    pub fn has_deletes(&self) -> bool {
-        self.num_deleted_docs() > 0
+        self.max_doc()
     }
 
     /// Updates the max_doc value from the `SegmentMeta`.
     pub fn with_max_doc(self, max_doc: u32) -> SegmentMeta {
         assert_eq!(self.tracked.max_doc, 0);
-        assert!(self.tracked.deletes.is_none());
         let tracked = self.tracked.map(move |inner_meta| InnerSegmentMeta {
             segment_id: inner_meta.segment_id,
             max_doc,
-            deletes: None,
-        });
-        SegmentMeta { tracked }
-    }
-
-    #[doc(hidden)]
-    #[must_use]
-    pub fn with_delete_meta(self, num_deleted_docs: u32, opstamp: Opstamp) -> SegmentMeta {
-        assert!(
-            num_deleted_docs <= self.max_doc(),
-            "There cannot be more deleted docs than there are docs."
-        );
-        let delete_meta = DeleteMeta {
-            num_deleted_docs,
-            opstamp,
-        };
-        let tracked = self.tracked.map(move |inner_meta| InnerSegmentMeta {
-            segment_id: inner_meta.segment_id,
-            max_doc: inner_meta.max_doc,
-            deletes: Some(delete_meta),
         });
         SegmentMeta { tracked }
     }
@@ -185,7 +132,6 @@ impl SegmentMeta {
 struct InnerSegmentMeta {
     segment_id: SegmentId,
     max_doc: u32,
-    deletes: Option<DeleteMeta>,
 }
 
 impl InnerSegmentMeta {
@@ -235,8 +181,6 @@ pub struct IndexMeta {
     pub segments: Vec<SegmentMeta>,
     /// Index `Schema`
     pub schema: Schema,
-    /// Opstamp associated with the last `commit` operation.
-    pub opstamp: Opstamp,
     /// Payload associated with the last commit.
     ///
     /// Upon commit, clients can optionally add a small `String` payload to their commit
@@ -252,7 +196,6 @@ struct UntrackedIndexMeta {
     #[serde(default)]
     pub index_settings: IndexSettings,
     pub schema: Schema,
-    pub opstamp: Opstamp,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub payload: Option<String>,
 }
@@ -267,7 +210,6 @@ impl UntrackedIndexMeta {
                 .map(|inner_seg_meta| inner_seg_meta.track(inventory))
                 .collect::<Vec<SegmentMeta>>(),
             schema: self.schema,
-            opstamp: self.opstamp,
             payload: self.payload,
         }
     }
@@ -278,13 +220,12 @@ impl IndexMeta {
     /// with the given index.
     ///
     /// This new index does not contains any segments.
-    /// Opstamp will the value `0u64`.
+    /// Creates a meta structure for a brand new index.
     pub fn with_schema(schema: Schema) -> IndexMeta {
         IndexMeta {
             index_settings: IndexSettings::default(),
             segments: vec![],
             schema,
-            opstamp: 0u64,
             payload: None,
         }
     }
@@ -328,19 +269,17 @@ mod tests {
             index_settings: IndexSettings::default(),
             segments: Vec::new(),
             schema,
-            opstamp: 0u64,
             payload: None,
         };
         let json = serde_json::ser::to_string(&index_metas).expect("serialization failed");
         assert_eq!(
             json,
-            r#"{"index_settings":{},"segments":[],"schema":[{"name":"text","type":"text","options":{"indexing":{"record":"position","fieldnorms":true,"tokenizer":"default"},"stored":false,"fast":false}}],"opstamp":0}"#
+            r#"{"index_settings":{},"segments":[],"schema":[{"name":"text","type":"text","options":{"indexing":{"record":"position","fieldnorms":true,"tokenizer":"default"},"stored":false,"fast":false}}]}"#
         );
 
         let deser_meta: UntrackedIndexMeta = serde_json::from_str(&json).unwrap();
         assert_eq!(index_metas.index_settings, deser_meta.index_settings);
         assert_eq!(index_metas.schema, deser_meta.schema);
-        assert_eq!(index_metas.opstamp, deser_meta.opstamp);
     }
     #[test]
     fn test_index_settings_default() {

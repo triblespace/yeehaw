@@ -233,7 +233,7 @@ mod tests {
                 .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
             let active_segment_ids = live_generations
                 .iter()
-                .flat_map(|searcher_generation| searcher_generation.segments().keys().copied())
+                .flat_map(|searcher_generation| searcher_generation.segments().iter().copied())
                 .collect();
             *self.active_segment_ids.write().unwrap() = active_segment_ids;
         }

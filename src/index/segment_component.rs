@@ -4,7 +4,6 @@ use std::slice;
 ///
 /// Each component is stored in its own file,
 /// using the pattern `segment_uuid`.`component_extension`,
-/// except the delete component that takes an `segment_uuid`.`delete_opstamp`.`component_extension`
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum SegmentComponent {
     /// Postings (or inverted list). Sorted lists of document ids, associated with terms
@@ -19,21 +18,17 @@ pub enum SegmentComponent {
     /// Dictionary associating `Term`s to `TermInfo`s which is
     /// simply an address into the `postings` file and the `positions` file.
     Terms,
-    /// Bitset describing which document of the segment is alive.
-    /// (It was representing deleted docs but changed to represent alive docs from v0.17)
-    Delete,
 }
 
 impl SegmentComponent {
     /// Iterates through the components.
     pub fn iterator() -> slice::Iter<'static, SegmentComponent> {
-        static SEGMENT_COMPONENTS: [SegmentComponent; 6] = [
+        static SEGMENT_COMPONENTS: [SegmentComponent; 5] = [
             SegmentComponent::Postings,
             SegmentComponent::Positions,
             SegmentComponent::FastFields,
             SegmentComponent::FieldNorms,
             SegmentComponent::Terms,
-            SegmentComponent::Delete,
         ];
         SEGMENT_COMPONENTS.iter()
     }

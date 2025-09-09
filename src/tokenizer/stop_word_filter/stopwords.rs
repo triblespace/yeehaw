@@ -2316,4 +2316,3 @@ pub const SWEDISH: &[&str] = &[
     "era",
     "vilkas",
 ];
-

@@ -16,9 +16,9 @@ This document outlines the long term plan to rewrite this project so that it rel
    - Represent segment lists, schema and other metadata as entities attached to each commit.
    - Replace the `meta.json` file with this trible based representation.
 
-2. **Implement `TribleBlobDirectory`**
-   - Replace the `Directory` abstraction with a backend that reads and writes blobs via the Trible Space `BlobStore`.
-   - Index writers and readers operate on blob handles instead of filesystem paths.
+2. **Adopt Trible-native storage primitives**
+   - Remove the Tantivy `Directory` abstraction and expose the Trible Space blob and view APIs directly to index components.
+   - Provide helper constructors for in-memory, file-backed and object-storage Trible deployments so the search engine never touches filesystem paths itself.
 
 3. **Remove `Opstamp` and use commit handles**
    - Commits record the segments they include.

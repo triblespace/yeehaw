@@ -14,11 +14,14 @@ This document outlines the long term plan to rewrite this project so that it rel
 1. **Store fulltext metadata in commit tribles**
    - Define a `fulltext` attribute in the Trible namespace.
    - Represent segment lists, schema and other metadata as entities attached to each commit.
-   - Replace the `meta.json` file with this trible based representation.
+   - Replace the `meta.json` file with this trible based representation and load metadata from the latest commit handle.
+   - Provide shims for reading legacy indexes long enough to migrate existing data.
 
-2. **Implement `TribleBlobDirectory`**
-   - Replace the `Directory` abstraction with a backend that reads and writes blobs via the Trible Space `BlobStore`.
-   - Index writers and readers operate on blob handles instead of filesystem paths.
+2. **Adopt Trible-native storage primitives**
+   - Replace the Tantivy `Directory` trait with a thin storage module that fetches blobs and views from Trible Space directly.
+   - Update index building, merging and searcher initialization so they operate on append-only segment blobs without filesystem assumptions.
+   - Delete lock file, watcher and atomic write helpers that only exist for mutable directories.
+   - Provide helper constructors for in-memory, file-backed and object-storage Trible deployments so the search engine never touches filesystem paths itself.
 
 3. **Remove `Opstamp` and use commit handles**
    - Commits record the segments they include.

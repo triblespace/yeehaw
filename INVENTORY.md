@@ -20,7 +20,8 @@ This document outlines the long term plan to rewrite this project so that it rel
 2. **Adopt Trible-native storage primitives**
    - Replace the Tantivy `Directory` trait with a thin storage module that fetches blobs and views from Trible Space directly.
    - Update index building, merging and searcher initialization so they operate on append-only segment blobs without filesystem assumptions.
-   - Delete lock file, watcher and atomic write helpers that only exist for mutable directories.
+   - Delete lock file, watcher, atomic write and garbage collection helpers that only exist for mutable directories.
+   - Remove alive-bitset writers/readers and other deletion tombstone plumbing so append-only blobs are the only persistence path.
    - Provide helper constructors for in-memory, file-backed and object-storage Trible deployments so the search engine never touches filesystem paths itself.
 
 3. **Remove `Opstamp` and use commit handles**

@@ -39,7 +39,7 @@ have been removed to keep the changelog focused on Yeehaw's history.
 - remove `quickwit` feature and associated asynchronous APIs.
 - remove obsolete document type codes.
 - capture plan to drop Tantivy's `Directory` layer in favor of Trible-native blob and view APIs.
-- refine roadmap subtasks for metadata commits and Trible-native storage migration.
+- refine roadmap subtasks for metadata commits, Trible-native storage migration, and removal of legacy GC/tombstone plumbing.
 - remove delete queue and segment delete tracking; document removal now handled externally by triblespace.
 - remove operation stamp infrastructure in preparation for commit-handle redesign.
 - simplify searcher generation to track segment ids only and drop legacy delete tests.
